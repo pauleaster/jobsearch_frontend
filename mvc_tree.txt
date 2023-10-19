@@ -1,0 +1,17 @@
+src/
+│
+├── model/
+│   ├── api.js             # Functions to fetch data from the server
+│
+├── view/
+│   ├── components/        # Reusable components
+│   │   ├── DataTable.js   # DataTable component
+│   │   └── JobDetailsTable.js # JobDetailsTable component
+│   ├── App.css
+│   └── App.js             # App component as the main view
+│
+├── controller/
+│   └── AppController.js   # Event handlers and state management
+│
+├── index.css
+└── index.js               # Entry point
