@@ -25,9 +25,41 @@ function DataTable({ data, onJobClick }) {
   );
 }
 
+function JobDetailsTable({ details }) {
+  if (!details) return null;
+
+  const renderRow = (label, value) => (
+    <tr key={label}>
+      <td>{label}</td>
+      <td>{value || '-'}</td>
+    </tr>
+  );
+
+  return (
+    <div className="table-container">
+      <table>
+        <tbody>
+          {renderRow('Job Id', details.job_id)}
+          {renderRow('Job Number', details.job_number)}
+          {renderRow('Job URL', details.job_url)}
+          {renderRow('Title', details.title)}
+          {renderRow('Comments', details.comments)}
+          {renderRow('Requirements', details.requirements)}
+          {renderRow('Follow Up', details.follow_up)}
+          {renderRow('Highlight', details.highlight)}
+          {renderRow('Applied', details.applied)}
+          {renderRow('Contact', details.contact)}
+          {renderRow('Application Comments', details.application_comments)}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+
 function App() {
   const [jobs, setJobs] = useState([]);
-  const [clickedJob, setClickedJob] = useState({});
+  // const [clickedJob, setClickedJob] = useState({});
   const [jobDetails, setJobDetails] = useState(null);
 
 
@@ -55,7 +87,7 @@ function App() {
   };
 
   const handleJobClick = (jobId, jobNumber) => {
-    setClickedJob({ id: jobId, number: jobNumber });
+    // setClickedJob({ id: jobId, number: jobNumber });
     fetchJobDetails(jobId);
 
   };
@@ -66,21 +98,8 @@ function App() {
         <button onClick={fetchData}>Fetch Jobs</button>
         <DataTable data={jobs} onJobClick={handleJobClick} />
 
-        {jobDetails && (
-          <div className="job-details">
-            <p>Job Id: {clickedJob.id}</p>
-            <p>Job Number: {clickedJob.number}</p>
-            <p>Title: {jobDetails.title}</p>
-            <p>Job URL: {jobDetails.job_url}</p>
-            <p>Comments: {jobDetails.comments}</p>
-            <p>Requirements: {jobDetails.requirements}</p>
-            <p>Follow Up: {jobDetails.follow_up}</p>
-            <p>Highlight: {jobDetails.highlight}</p>
-            <p>Applied: {jobDetails.applied}</p>
-            <p>Contact: {jobDetails.contact}</p>
-            <p>Application Comments: {jobDetails.application_comments}</p>
-          </div>
-        )}
+        {jobDetails && <JobDetailsTable details={jobDetails} />
+}
       </header>
     </div>
   );
