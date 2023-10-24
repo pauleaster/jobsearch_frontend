@@ -1,30 +1,66 @@
 import React from 'react';
+import { createLowercaseDBField } from '../../utils/transform';
 
-function JobDetailsTable({ details }) {
+
+const JobDetailsTable = ({ details, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
     if (!details) return null;
   
-    const renderRow = (label, value) => (
-      <tr key={label}>
-        <td>{label}</td>
-        <td>{value || '-'}</td>
-      </tr>
+    
+    const renderEditableRow = (label, value) => {
+
+      const fieldName = createLowercaseDBField(label);
+      const fieldValue = details[fieldName];
+      return (
+          <tr key={label} onClick={() => onRowClick(label)}>
+              <td>{label}</td>
+              <td>
+                  {editingRow === label ? (
+                      <>
+                          <input
+                              value={editingValue}
+                              onChange={(e) => onEditValueChange(e.target.value)}
+                              onBlur={onUpdateRow}
+                          />
+                          <button onClick={onUpdateRow}>Save</button>
+                      </>
+                  ) : (
+                    fieldValue || '-'
+                  )}
+              </td>
+          </tr>
+      );
+    };
+  
+  const renderUneditableRow = (label, value) => {
+
+    const fieldName = createLowercaseDBField(label);
+    const fieldValue = details[fieldName];
+
+    return (
+        <tr key={label}>
+            <td>{label}</td>
+            <td>{fieldValue || '-'}</td>
+        </tr>
     );
+  };
+    
+    
   
     return (
       <div className="table-container">
         <table>
           <tbody>
-            {renderRow('Job Id', details.job_id)}
-            {renderRow('Job Number', details.job_number)}
-            {renderRow('Job URL', details.job_url)}
-            {renderRow('Title', details.title)}
-            {renderRow('Comments', details.comments)}
-            {renderRow('Requirements', details.requirements)}
-            {renderRow('Follow Up', details.follow_up)}
-            {renderRow('Highlight', details.highlight)}
-            {renderRow('Applied', details.applied)}
-            {renderRow('Contact', details.contact)}
-            {renderRow('Application Comments', details.application_comments)}
+            {renderUneditableRow('Job Id', details.job_id)}
+            {renderUneditableRow('Job Number', details.job_number)}
+            {renderEditableRow('Job URL', details.job_url)}
+            {renderEditableRow('Title', details.title)}
+            {renderEditableRow('Comments', details.comments)}
+            {renderEditableRow('Requirements', details.requirements)}
+            {renderEditableRow('Follow Up', details.follow_up)}
+            {renderEditableRow('Highlight', details.highlight)}
+            {renderEditableRow('Applied', details.applied)}
+            {renderEditableRow('Contact', details.contact)}
+            {renderEditableRow('Application Comments', details.application_comments)}
           </tbody>
         </table>
       </div>
