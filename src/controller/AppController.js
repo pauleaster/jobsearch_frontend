@@ -24,8 +24,9 @@ const AppController = () => {
         console.log("handleRowClick(", label, ")");
         if (jobDetails) {
             setEditingRow(label);
-            // setEditingValue(jobDetails[label.toLowerCase().replace(/ /g, '_')]);
-            setEditingValue(createLowercaseDBField(jobDetails[label]));
+            const dbField = createLowercaseDBField(label);
+            const fieldValue = jobDetails[dbField];
+            setEditingValue(fieldValue);
         }
     };
 
