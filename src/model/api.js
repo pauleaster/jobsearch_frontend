@@ -22,7 +22,7 @@ const fetchJobDetails = async (jobId) => {
     }
 }
 
-const isPatchEnabled = false;
+const isPatchEnabled = true;
 
 const patchJobDetails = async (jobId, field, value) => {
     console.log("patchJobDetails(", jobId, field, value,")");

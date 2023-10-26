@@ -1,5 +1,5 @@
 const createLowercaseDBField = (webField) => {
-    console.log(`createLowercaseDBField("${webField}")`);
+    // console.log(`createLowercaseDBField("${webField}")`);
     if (webField === null || webField === undefined) {
         return webField;  // return the original value if it's null or undefined
     }
@@ -9,7 +9,7 @@ const createLowercaseDBField = (webField) => {
         return webField;  // return the original value or handle as you see fit
     }
     const result = webField.toLowerCase().replace(/ /g, '_');
-    console.log(`createLowercaseDBField: result = "${result}"`);
+    // console.log(`createLowercaseDBField: result = "${result}"`);
     return result;
 }
 
