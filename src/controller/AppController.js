@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { fetchData, fetchJobDetails, patchJobDetails } from '../model/api';
 import App from '../view/App';
 import { createLowercaseDBField } from '../utils/transform';
+import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
 
 const AppController = () => {
     const [jobs, setJobs] = useState([]);
     const [jobDetails, setJobDetails] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
     const [editingValue, setEditingValue] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
     
 
     const handleFetchData = async () => {
@@ -25,7 +27,10 @@ const AppController = () => {
         if (jobDetails) {
             setEditingRow(label);
             const dbField = createLowercaseDBField(label);
-            const fieldValue = jobDetails[dbField];
+            let fieldValue = jobDetails[dbField];
+            if (fieldValue === null || fieldValue === undefined) {
+                fieldValue = '';
+            }
             setEditingValue(fieldValue);
         }
     };
@@ -43,28 +48,54 @@ const AppController = () => {
     };
 
     const handleSaveWithConfirmation = async () => {
-        if (window.confirm("Are you sure you want to save the changes?")) {
-            await handleUpdateRow();  // only call the original update function if the user confirms
-        }
+        setIsModalOpen(true);
+    }    
+
+    const handleConfirmSave = async () => {
+        await handleUpdateRow();  // only call the original update function if the user confirms
+
         // Fetch latest job details
         const updatedJobDetails = await fetchJobDetails(jobDetails.job_id,);  // Assuming you have the current job's ID stored in a state or variable
         setJobDetails(updatedJobDetails);  // Update the jobDetails state with the latest details
+        setIsModalOpen(false);  // Close the modal
     }
+    
+    const handleCloseModal = () => {
+        if (jobDetails && editingRow) {
+            // Retrieve the original value for the editing field
+            const dbField = createLowercaseDBField(editingRow);
+            const originalValue = jobDetails[dbField];
+    
+            // Set the editing value to the original value, even if it's null or undefined
+            setEditingValue(originalValue);
+        }
+        // Close the modal
+        setIsModalOpen(false);
+    };
     
     
 
     return (
-        <App
-            jobs={jobs}
-            jobDetails={jobDetails}
-            onFetchData={handleFetchData}
-            onJobClick={handleJobClick}
-            onRowClick={handleRowClick}
-            editingRow={editingRow}
-            editingValue={editingValue}
-            onEditValueChange={setEditingValue}
-            onUpdateRow={handleSaveWithConfirmation}
-        />
+        <>
+            <App
+                jobs={jobs}
+                jobDetails={jobDetails}
+                onFetchData={handleFetchData}
+                onJobClick={handleJobClick}
+                onRowClick={handleRowClick}
+                editingRow={editingRow}
+                editingValue={editingValue}
+                onEditValueChange={setEditingValue}
+                onUpdateRow={handleSaveWithConfirmation}
+            />
+
+            <SaveConfirmationDialog
+                isOpen={isModalOpen}
+                onConfirm={handleConfirmSave}
+                onClose={handleCloseModal}
+            />
+        </>
+
     );
 }
 
