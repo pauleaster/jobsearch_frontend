@@ -1,6 +1,6 @@
 import React from 'react';
 
-function DataTable({ data, onJobClick }) {
+const DataTable = ({ data, onJobClick }) => {
     return (
       <div className="table-container">
         <table>

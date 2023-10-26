@@ -3,13 +3,22 @@ import './App.css';
 import DataTable from './components/DataTable';
 import JobDetailsTable from './components/JobDetailsTable';
 
-function App({ jobs, jobDetails, onFetchData, onJobClick }) {
+const App = ({ jobs, jobDetails, onFetchData, onJobClick, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
     return (
         <div className="App">
             <header className="App-header">
                 <button onClick={onFetchData}>Fetch Jobs</button>
                 <DataTable data={jobs} onJobClick={onJobClick} />
-                {jobDetails && <JobDetailsTable details={jobDetails} />}
+                {jobDetails && (
+                    <JobDetailsTable 
+                        details={jobDetails} 
+                        onRowClick={onRowClick} 
+                        editingRow={editingRow}
+                        editingValue={editingValue}
+                        onEditValueChange={onEditValueChange}
+                        onUpdateRow={onUpdateRow}
+                        />
+                )}
             </header>
         </div>
     );
