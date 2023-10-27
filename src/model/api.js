@@ -11,6 +11,17 @@ const fetchData = async () => {
     }
 }
 
+const fetchSearchTerms = async () => {
+    try {
+        const response = await fetch('http://localhost:3001/api/searchTerms');
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("There was an error fetching the data", error);
+        return null;
+    }
+}
+
 const fetchJobDetails = async (jobId) => {
     try {
         const response = await fetch(`http://localhost:3001/api/job/${jobId}`);
@@ -47,4 +58,4 @@ const patchJobDetails = async (jobId, field, value) => {
     }
 }
 
-export { fetchData, fetchJobDetails, patchJobDetails };
+export { fetchData, fetchSearchTerms, fetchJobDetails, patchJobDetails };

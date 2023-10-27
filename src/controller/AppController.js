@@ -1,6 +1,6 @@
 // src>controller>AppController.js
 import React, { useState } from 'react';
-import { fetchData, fetchJobDetails, patchJobDetails } from '../model/api';
+import { fetchData, fetchSearchTerms, fetchJobDetails, patchJobDetails } from '../model/api';
 import App from '../view/App';
 import { createLowercaseDBField } from '../utils/transform';
 import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
@@ -12,6 +12,8 @@ const AppController = () => {
     const [editingValue, setEditingValue] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [jobsFetched, setJobsFetched] = useState(false);
+    const [searchTerms, setSearchTerms] = useState([]);
+    const [showSearchTerms, setShowSearchTerms] = useState(false);
     
 
     const handleFetchData = async () => {
@@ -20,7 +22,12 @@ const AppController = () => {
         setJobsFetched(true);  // Set to true once data is fetched
     };
 
-    const handleFilterClick = () => {
+    const handleFilterClick = async () => {
+        const fetchedSearchTerms = await fetchSearchTerms();
+        if (fetchedSearchTerms) {
+            setSearchTerms(fetchedSearchTerms);
+            setShowSearchTerms(true); // Show the search terms table
+        }
         console.log("Filter Jobs button clicked");
     };
 
@@ -90,6 +97,8 @@ const AppController = () => {
                 jobsFetched={jobsFetched}
                 onFetchData={handleFetchData}
                 onFilterClick={handleFilterClick}
+                searchTerms={searchTerms}
+                showSearchTerms={showSearchTerms}
                 onJobClick={handleJobClick}
                 onRowClick={handleRowClick}
                 editingRow={editingRow}

@@ -3,8 +3,23 @@ import './App.css';
 import DataTable from './components/DataTable';
 import JobDetailsTable from './components/JobDetailsTable';
 import FetchButtons from './components/FetchButtons';
+import SearchTerms from './components/SearchTerms';
 
-const App = ({ jobs, jobDetails, onFetchData, jobsFetched, onFilterClick, onJobClick, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
+const App = ({ 
+    jobs, 
+    jobDetails, 
+    onFetchData, 
+    jobsFetched, 
+    onFilterClick,
+    searchTerms,
+    showSearchTerms, 
+    onJobClick, 
+    onRowClick, 
+    editingRow, 
+    editingValue, 
+    onEditValueChange, 
+    onUpdateRow 
+}) => {
     return (
         <div className="App">
             <header className="App-header">
@@ -13,6 +28,10 @@ const App = ({ jobs, jobDetails, onFetchData, jobsFetched, onFilterClick, onJobC
                     jobsFetched={jobsFetched}
                     onFilterClick={onFilterClick} 
                 />
+                {showSearchTerms && (
+                    <SearchTerms 
+                        terms={searchTerms} />
+                )}
                 <DataTable 
                     data={jobs} 
                     onJobClick={onJobClick} 
