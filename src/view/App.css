@@ -43,7 +43,18 @@ body {
   }
 }
 
+.app-content {
+  display: flex;
+  justify-content: space-between;
+}
+
 .table-container {
+  overflow-y: auto;
+  max-height: 400px; /* Adjust this value as per your requirement */
+  border: 1px solid #ccc;
+}
+
+.search-terms-container {
   overflow-y: auto;
   max-height: 400px; /* Adjust this value as per your requirement */
   border: 1px solid #ccc;

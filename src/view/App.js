@@ -28,14 +28,20 @@ const App = ({
                     jobsFetched={jobsFetched}
                     onFilterClick={onFilterClick} 
                 />
-                {showSearchTerms && (
-                    <SearchTerms 
-                        terms={searchTerms} />
-                )}
-                <DataTable 
-                    data={jobs} 
-                    onJobClick={onJobClick} 
-                />
+                <div className="app-content">
+                    {showSearchTerms && (
+                        <div className="search-terms-container">
+                            <SearchTerms 
+                                terms={searchTerms} />
+                        </div>
+                    )}
+                    <div className='table-container'>
+                        <DataTable 
+                            data={jobs} 
+                            onJobClick={onJobClick} 
+                        />
+                    </div>
+                </div>
                 {jobDetails && (
                     <JobDetailsTable 
                         details={jobDetails} 
