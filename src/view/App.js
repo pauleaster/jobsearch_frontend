@@ -4,12 +4,19 @@ import DataTable from './components/DataTable';
 import JobDetailsTable from './components/JobDetailsTable';
 import FetchButtons from './components/FetchButtons';
 
-const App = ({ jobs, jobDetails, onFetchData, jobsFetched, onJobClick, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
+const App = ({ jobs, jobDetails, onFetchData, jobsFetched, onFilterClick, onJobClick, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
     return (
         <div className="App">
             <header className="App-header">
-                <FetchButtons onFetchData={onFetchData} jobsFetched={jobsFetched} />
-                <DataTable data={jobs} onJobClick={onJobClick} />
+                <FetchButtons 
+                    onFetchData={onFetchData} 
+                    jobsFetched={jobsFetched}
+                    onFilterClick={onFilterClick} 
+                />
+                <DataTable 
+                    data={jobs} 
+                    onJobClick={onJobClick} 
+                />
                 {jobDetails && (
                     <JobDetailsTable 
                         details={jobDetails} 

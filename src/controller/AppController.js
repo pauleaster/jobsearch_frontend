@@ -20,6 +20,10 @@ const AppController = () => {
         setJobsFetched(true);  // Set to true once data is fetched
     };
 
+    const handleFilterClick = () => {
+        console.log("Filter Jobs button clicked");
+    };
+
     const handleJobClick = async (jobId) => {
         const details = await fetchJobDetails(jobId);
         setJobDetails(details);
@@ -85,6 +89,7 @@ const AppController = () => {
                 jobDetails={jobDetails}
                 jobsFetched={jobsFetched}
                 onFetchData={handleFetchData}
+                onFilterClick={handleFilterClick}
                 onJobClick={handleJobClick}
                 onRowClick={handleRowClick}
                 editingRow={editingRow}
