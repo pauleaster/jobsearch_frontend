@@ -1,3 +1,4 @@
+// src>controller>AppController.js
 import React, { useState } from 'react';
 import { fetchData, fetchJobDetails, patchJobDetails } from '../model/api';
 import App from '../view/App';
@@ -10,11 +11,13 @@ const AppController = () => {
     const [editingRow, setEditingRow] = useState(null);
     const [editingValue, setEditingValue] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [jobsFetched, setJobsFetched] = useState(false);
     
 
     const handleFetchData = async () => {
         const data = await fetchData();
         setJobs(data);
+        setJobsFetched(true);  // Set to true once data is fetched
     };
 
     const handleJobClick = async (jobId) => {
@@ -80,6 +83,7 @@ const AppController = () => {
             <App
                 jobs={jobs}
                 jobDetails={jobDetails}
+                jobsFetched={jobsFetched}
                 onFetchData={handleFetchData}
                 onJobClick={handleJobClick}
                 onRowClick={handleRowClick}

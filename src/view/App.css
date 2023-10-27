@@ -121,3 +121,12 @@ th {
   background-color: #50555a;
 }
 
+.fetch-buttons-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.fetch-buttons-container button {
+  margin: 0 10px; /* Adjust spacing between buttons */
+}

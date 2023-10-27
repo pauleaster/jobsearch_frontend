@@ -2,12 +2,13 @@ import React from 'react';
 import './App.css';
 import DataTable from './components/DataTable';
 import JobDetailsTable from './components/JobDetailsTable';
+import FetchButtons from './components/FetchButtons';
 
-const App = ({ jobs, jobDetails, onFetchData, onJobClick, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
+const App = ({ jobs, jobDetails, onFetchData, jobsFetched, onJobClick, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
     return (
         <div className="App">
             <header className="App-header">
-                <button onClick={onFetchData}>Fetch Jobs</button>
+                <FetchButtons onFetchData={onFetchData} jobsFetched={jobsFetched} />
                 <DataTable data={jobs} onJobClick={onJobClick} />
                 {jobDetails && (
                     <JobDetailsTable 
