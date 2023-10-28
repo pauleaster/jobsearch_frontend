@@ -4,6 +4,7 @@ import { fetchData, fetchSearchTerms, fetchJobDetails, patchJobDetails } from '.
 import App from '../view/App';
 import { createLowercaseDBField } from '../utils/transform';
 import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
+import SearchTerms from '../view/components/SearchTerms';
 
 const AppController = () => {
     const [jobs, setJobs] = useState([]);
@@ -14,6 +15,8 @@ const AppController = () => {
     const [jobsFetched, setJobsFetched] = useState(false);
     const [searchTerms, setSearchTerms] = useState([]);
     const [showSearchTerms, setShowSearchTerms] = useState(false);
+    const [selectedTerms, setSelectedTerms] = useState(new Set());
+
     
 
     const handleFetchData = async () => {
@@ -29,6 +32,16 @@ const AppController = () => {
             setShowSearchTerms(true); // Show the search terms table
         }
         console.log("Filter Jobs button clicked");
+    };
+
+    const toggleTermSelection = (term) => {
+        const newSelectedTerms = new Set(selectedTerms);
+        if (newSelectedTerms.has(term)) {
+            newSelectedTerms.delete(term);
+        } else {
+            newSelectedTerms.add(term);
+        }
+        setSelectedTerms(newSelectedTerms);
     };
 
     const handleJobClick = async (jobId) => {
@@ -105,6 +118,12 @@ const AppController = () => {
                 editingValue={editingValue}
                 onEditValueChange={setEditingValue}
                 onUpdateRow={handleSaveWithConfirmation}
+            />
+
+            <SearchTerms 
+                searchTerms={searchTerms} 
+                selectedTerms={selectedTerms} 
+                onToggleTerm={toggleTermSelection} 
             />
 
             <SaveConfirmationDialog
