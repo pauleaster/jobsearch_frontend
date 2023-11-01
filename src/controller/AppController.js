@@ -1,10 +1,9 @@
 // src>controller>AppController.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fetchData, fetchSearchTerms, fetchJobDetails, patchJobDetails } from '../model/api';
 import App from '../view/App';
 import { createLowercaseDBField } from '../utils/transform';
 import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
-import SearchTerms from '../view/components/SearchTerms';
 
 const AppController = () => {
     const [jobs, setJobs] = useState([]);
@@ -17,8 +16,8 @@ const AppController = () => {
     const [showSearchTerms, setShowSearchTerms] = useState(false);
     const [selectedTerms, setSelectedTerms] = useState(new Set());
 
-    
 
+    
     const handleFetchData = async () => {
         const data = await fetchData();
         setJobs(data);
@@ -30,19 +29,34 @@ const AppController = () => {
         if (fetchedSearchTerms) {
             setSearchTerms(fetchedSearchTerms);
             setShowSearchTerms(true); // Show the search terms table
+            console.log("handleFilterClick: handleToggleTerm type:", typeof handleToggleTerm); 
         }
-        console.log("Filter Jobs button clicked");
+        else {
+            console.log("handleFilterClick: fetchSearchTerms returned null");
+        }
+        
     };
 
-    const toggleTermSelection = (term) => {
+    const handleToggleTerm = (term) => {
         const newSelectedTerms = new Set(selectedTerms);
         if (newSelectedTerms.has(term)) {
             newSelectedTerms.delete(term);
+            console.log("handleToggleTerm: newSelectedTerms.delete(", term, ")");
         } else {
             newSelectedTerms.add(term);
+            console.log("handleToggleTerm: newSelectedTerms.add(", term, ")");
         }
         setSelectedTerms(newSelectedTerms);
+        console.log("handleToggleTerm: setSelectedTerms(", newSelectedTerms, ")");
     };
+
+    useEffect(() => {
+        console.log("AppController: showSearchTerms changed:", showSearchTerms);
+        console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showSearchTerms]);
+
+    console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); // Should log 'function'
 
     const handleJobClick = async (jobId) => {
         const details = await fetchJobDetails(jobId);
@@ -118,12 +132,6 @@ const AppController = () => {
                 editingValue={editingValue}
                 onEditValueChange={setEditingValue}
                 onUpdateRow={handleSaveWithConfirmation}
-            />
-
-            <SearchTerms 
-                searchTerms={searchTerms} 
-                selectedTerms={selectedTerms} 
-                onToggleTerm={toggleTermSelection} 
             />
 
             <SaveConfirmationDialog

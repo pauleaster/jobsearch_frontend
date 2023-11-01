@@ -12,7 +12,9 @@ const App = ({
     jobsFetched, 
     onFilterClick,
     searchTerms,
-    showSearchTerms, 
+    showSearchTerms,
+    selectedTerms,
+    handleToggleTerm,
     onJobClick, 
     onRowClick, 
     editingRow, 
@@ -32,7 +34,10 @@ const App = ({
                     {showSearchTerms && (
                         <div className="search-terms-container">
                             <SearchTerms 
-                                terms={searchTerms} />
+                                searchTerms={searchTerms} 
+                                selectedTerms={selectedTerms} 
+                                onToggleTerm={handleToggleTerm}
+                                isShown={showSearchTerms}  />
                         </div>
                     )}
                     <div className='table-container'>
