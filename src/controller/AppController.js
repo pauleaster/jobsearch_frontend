@@ -28,6 +28,7 @@ const AppController = () => {
         const fetchedSearchTerms = await fetchSearchTerms();
         if (fetchedSearchTerms) {
             setSearchTerms(fetchedSearchTerms);
+            setSelectedTerms(new Set(fetchedSearchTerms)); // Set all fetched terms as selected
             setShowSearchTerms(true); // Show the search terms table
             console.log("handleFilterClick: handleToggleTerm type:", typeof handleToggleTerm); 
         }
@@ -126,6 +127,8 @@ const AppController = () => {
                 onFilterClick={handleFilterClick}
                 searchTerms={searchTerms}
                 showSearchTerms={showSearchTerms}
+                selectedTerms={selectedTerms}          // Added
+                handleToggleTerm={handleToggleTerm}    // Added
                 onJobClick={handleJobClick}
                 onRowClick={handleRowClick}
                 editingRow={editingRow}
@@ -133,6 +136,7 @@ const AppController = () => {
                 onEditValueChange={setEditingValue}
                 onUpdateRow={handleSaveWithConfirmation}
             />
+
 
             <SaveConfirmationDialog
                 isOpen={isModalOpen}

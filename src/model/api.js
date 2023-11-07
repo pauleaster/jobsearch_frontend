@@ -1,8 +1,14 @@
 
 
-const fetchData = async () => {
+const fetchData = async (searchTerms = []) => {
     try {
-        const response = await fetch('http://localhost:3001/api/validJobsAndSearchTerms');
+        // Construct the URL with query parameters
+        const queryParams = new URLSearchParams();
+        searchTerms.forEach(term => queryParams.append('searchTerms', term));
+        const url = `http://localhost:3001/api/validJobsAndSearchTerms?${queryParams}`;
+
+
+        const response = await fetch(url);
         const data = await response.json();
         return data;
     } catch (error) {

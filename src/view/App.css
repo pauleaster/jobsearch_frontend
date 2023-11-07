@@ -60,6 +60,12 @@ body {
   border: 1px solid #ccc;
 }
 
+.selected {
+  background-color: #d3f8d3; /* Light green background, or choose your preferred color */
+  color: #034503; /* Darker text color for contrast, optional */
+  cursor: pointer; /* Change cursor to indicate row is clickable, optional */
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
