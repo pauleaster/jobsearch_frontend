@@ -2,13 +2,51 @@ import React from 'react';
 import './App.css';
 import DataTable from './components/DataTable';
 import JobDetailsTable from './components/JobDetailsTable';
+import FetchButtons from './components/FetchButtons';
+import SearchTerms from './components/SearchTerms';
 
-const App = ({ jobs, jobDetails, onFetchData, onJobClick, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
+const App = ({ 
+    jobs, 
+    jobDetails, 
+    onFetchData, 
+    jobsFetched, 
+    onFilterClick,
+    searchTerms,
+    showSearchTerms,
+    selectedTerms,
+    handleToggleTerm,
+    onJobClick, 
+    onRowClick, 
+    editingRow, 
+    editingValue, 
+    onEditValueChange, 
+    onUpdateRow 
+}) => {
     return (
         <div className="App">
             <header className="App-header">
-                <button onClick={onFetchData}>Fetch Jobs</button>
-                <DataTable data={jobs} onJobClick={onJobClick} />
+                <FetchButtons 
+                    onFetchData={onFetchData} 
+                    jobsFetched={jobsFetched}
+                    onFilterClick={onFilterClick} 
+                />
+                <div className="app-content">
+                    {showSearchTerms && (
+                        <div className="search-terms-container">
+                            <SearchTerms 
+                                searchTerms={searchTerms} 
+                                selectedTerms={selectedTerms} 
+                                onToggleTerm={handleToggleTerm}
+                                isShown={showSearchTerms}  />
+                        </div>
+                    )}
+                    <div className='table-container'>
+                        <DataTable 
+                            data={jobs} 
+                            onJobClick={onJobClick} 
+                        />
+                    </div>
+                </div>
                 {jobDetails && (
                     <JobDetailsTable 
                         details={jobDetails} 

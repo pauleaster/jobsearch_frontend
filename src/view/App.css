@@ -43,10 +43,27 @@ body {
   }
 }
 
+.app-content {
+  display: flex;
+  justify-content: space-between;
+}
+
 .table-container {
   overflow-y: auto;
   max-height: 400px; /* Adjust this value as per your requirement */
   border: 1px solid #ccc;
+}
+
+.search-terms-container {
+  overflow-y: auto;
+  max-height: 400px; /* Adjust this value as per your requirement */
+  border: 1px solid #ccc;
+}
+
+.selected {
+  background-color: #d3f8d3; /* Light green background, or choose your preferred color */
+  color: #034503; /* Darker text color for contrast, optional */
+  cursor: pointer; /* Change cursor to indicate row is clickable, optional */
 }
 
 table {
@@ -121,3 +138,12 @@ th {
   background-color: #50555a;
 }
 
+.fetch-buttons-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.fetch-buttons-container button {
+  margin: 0 10px; /* Adjust spacing between buttons */
+}

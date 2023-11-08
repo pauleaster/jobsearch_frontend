@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { fetchData, fetchJobDetails, patchJobDetails } from '../model/api';
+// src>controller>AppController.js
+import React, { useState, useEffect } from 'react';
+import { fetchData, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails } from '../model/api';
 import App from '../view/App';
 import { createLowercaseDBField } from '../utils/transform';
 import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
@@ -10,12 +11,67 @@ const AppController = () => {
     const [editingRow, setEditingRow] = useState(null);
     const [editingValue, setEditingValue] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+    const [jobsFetched, setJobsFetched] = useState(false);
+    const [searchTerms, setSearchTerms] = useState([]);
+    const [showSearchTerms, setShowSearchTerms] = useState(false);
+    const [selectedTerms, setSelectedTerms] = useState(new Set());
 
+
+    
     const handleFetchData = async () => {
         const data = await fetchData();
         setJobs(data);
+        setJobsFetched(true);  // Set to true once data is fetched
     };
+
+    const handleFilterClick = async () => {
+        const fetchedSearchTerms = await fetchSearchTerms();
+        if (fetchedSearchTerms) {
+            setSearchTerms(fetchedSearchTerms);
+            setSelectedTerms(new Set(fetchedSearchTerms)); // Set all fetched terms as selected
+            setShowSearchTerms(true); // Show the search terms table
+            console.log("handleFilterClick: handleToggleTerm type:", typeof handleToggleTerm); 
+        }
+        else {
+            console.log("handleFilterClick: fetchSearchTerms returned null");
+        }
+        
+    };
+
+    const handleFilteredFetchData = async (selectedTermsSet) => {
+        const toggledSelectedTerms = Array.from(selectedTermsSet);
+        console.log("handleFilteredFetchData: toggledSelectedTerms:", toggledSelectedTerms);
+        const data = await fetchFilteredData(toggledSelectedTerms);
+        setJobs(data);
+        setJobsFetched(true);  // Set to true once data is fetched
+    };
+
+    const handleToggleTerm = (term) => {
+        const newSelectedTerms = new Set(selectedTerms);
+        if (newSelectedTerms.has(term)) {
+            if (newSelectedTerms.size > 1) {
+                newSelectedTerms.delete(term);
+                console.log("handleToggleTerm: newSelectedTerms.delete(", term, ")");
+            } else {
+                return;
+            }
+        } else {
+            newSelectedTerms.add(term);
+            console.log("handleToggleTerm: newSelectedTerms.add(", term, ")");
+        }
+        setSelectedTerms(newSelectedTerms);
+        // launch handleFetchData with the selected terms, converting to an array first
+        handleFilteredFetchData(newSelectedTerms);
+
+    };
+
+    useEffect(() => {
+        console.log("AppController: showSearchTerms changed:", showSearchTerms);
+        console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showSearchTerms]);
+
+    console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); // Should log 'function'
 
     const handleJobClick = async (jobId) => {
         const details = await fetchJobDetails(jobId);
@@ -80,7 +136,13 @@ const AppController = () => {
             <App
                 jobs={jobs}
                 jobDetails={jobDetails}
+                jobsFetched={jobsFetched}
                 onFetchData={handleFetchData}
+                onFilterClick={handleFilterClick}
+                searchTerms={searchTerms}
+                showSearchTerms={showSearchTerms}
+                selectedTerms={selectedTerms}          // Added
+                handleToggleTerm={handleToggleTerm}    // Added
                 onJobClick={handleJobClick}
                 onRowClick={handleRowClick}
                 editingRow={editingRow}
@@ -88,6 +150,7 @@ const AppController = () => {
                 onEditValueChange={setEditingValue}
                 onUpdateRow={handleSaveWithConfirmation}
             />
+
 
             <SaveConfirmationDialog
                 isOpen={isModalOpen}
