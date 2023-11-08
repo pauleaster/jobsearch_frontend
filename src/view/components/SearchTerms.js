@@ -2,9 +2,9 @@
 import React from 'react';
 
 const SearchTerms = ({ searchTerms, selectedTerms = new Set(), onToggleTerm, isShown }) => {
-    console.log("SearchTerms(", "\nsearchTerms=",searchTerms, "\nselectedTerms=", selectedTerms, "\nonToggleTerm=", onToggleTerm, ")");
-    console.log("SearchTerms: onToggleTerm type:", typeof onToggleTerm);
-    console.log("SearchTerms: isShown:", isShown);
+    // console.log("SearchTerms(", "\nsearchTerms=",searchTerms, "\nselectedTerms=", selectedTerms, "\nonToggleTerm=", onToggleTerm, ")");
+    // console.log("SearchTerms: onToggleTerm type:", typeof onToggleTerm);
+    // console.log("SearchTerms: isShown:", isShown);
 
     let bad_result = false;
     // Check if onToggleTerm is a function

@@ -1,15 +1,38 @@
 
 
-const fetchData = async (searchTerms = []) => {
+const fetchData = async () => {
     try {
-        // Construct the URL with query parameters
-        const queryParams = new URLSearchParams();
-        searchTerms.forEach(term => queryParams.append('searchTerms', term));
-        const url = `http://localhost:3001/api/validJobsAndSearchTerms?${queryParams}`;
+        const url = `http://localhost:3001/api/validJobsAndSearchTerms`;
+        console.log("api: fetchData: url:", url);
 
 
         const response = await fetch(url);
         const data = await response.json();
+        console.log("api: fetchData: data:", data);
+        return data;
+    } catch (error) {
+        console.error("There was an error fetching the data", error);
+        return null;
+    }
+}
+
+const fetchFilteredData = async (searchTerms = ['']) => {
+    try {
+        console.log("api: fetchFilteredData: searchTerms:", searchTerms);
+        const url = `http://localhost:3001/api/filteredJobsAndSearchTerms`;
+        const jsonPayload = {
+            filterTerms: searchTerms
+        };
+        console.log("api: fetchFilteredData: jsonPayload:", jsonPayload);
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jsonPayload) // Send search terms in the request body
+        });
+        const data = await response.json();
+        console.log("api: fetchFilteredData: data:", data);
         return data;
     } catch (error) {
         console.error("There was an error fetching the data", error);
@@ -64,4 +87,4 @@ const patchJobDetails = async (jobId, field, value) => {
     }
 }
 
-export { fetchData, fetchSearchTerms, fetchJobDetails, patchJobDetails };
+export { fetchData, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails };
