@@ -1,11 +1,14 @@
 src/
 │
 ├── model/
-│   ├── api.js             # Functions to fetch data from the server
+│   └── api.js             # Functions to fetch data from the server
 │
 ├── view/
 │   ├── components/        # Reusable components
 │   │   ├── DataTable.js   # DataTable component
+│   │   ├── FetchButtons.js   # Fetch component
+│   │   ├── SaveConfirmationDialog.js   # SaveConfirmationDialog component
+│   │   ├── SearchTerms.js   # SearchTerms component
 │   │   └── JobDetailsTable.js # JobDetailsTable component
 │   ├── App.css
 │   └── App.js             # App component as the main view

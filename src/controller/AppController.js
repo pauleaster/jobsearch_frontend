@@ -30,7 +30,7 @@ const AppController = () => {
             setSearchTerms(fetchedSearchTerms);
             setSelectedTerms(new Set(fetchedSearchTerms)); // Set all fetched terms as selected
             setShowSearchTerms(true); // Show the search terms table
-            console.log("handleFilterClick: handleToggleTerm type:", typeof handleToggleTerm); 
+            // console.log("handleFilterClick: handleToggleTerm type:", typeof handleToggleTerm); 
         }
         else {
             console.log("handleFilterClick: fetchSearchTerms returned null");
@@ -67,14 +67,16 @@ const AppController = () => {
 
     useEffect(() => {
         console.log("AppController: showSearchTerms changed:", showSearchTerms);
-        console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); 
+        // console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showSearchTerms]);
 
-    console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); // Should log 'function'
+    // console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); // Should log 'function'
 
     const handleJobClick = async (jobId) => {
+        console.log("handleJobClick(", jobId, ")");
         const details = await fetchJobDetails(jobId);
+        console.log("handleJobClick: details:", details);
         setJobDetails(details);
     };
 

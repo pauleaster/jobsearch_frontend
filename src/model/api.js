@@ -1,8 +1,25 @@
+import { normaliseData } from "../utils/transform";
+
+const API_BASE_URL = ((useHttpsApi = process.env.REACT_APP_USE_HTTPS_API === "true") => {
+    if (useHttpsApi) {
+        const api_base_url = process.env.REACT_APP_API_HTTPS_BASE_URL;
+        console.log("api: API_BASE_URL: api_base_url:", api_base_url);
+        return api_base_url;
+    } else {
+        const api_base_url = process.env.REACT_APP_API_HTTP_BASE_URL;
+        console.log("api: API_BASE_URL: api_base_url:", api_base_url);
+        return api_base_url;
+    }
+})();
+
+
+
 
 
 const fetchData = async () => {
     try {
-        const url = `http://localhost:3001/api/validJobsAndSearchTerms`;
+        console.log("api: fetchData: API_BASE_URL:", API_BASE_URL);
+        const url = `${API_BASE_URL}/validJobsAndSearchTerms`;
         console.log("api: fetchData: url:", url);
 
 
@@ -18,8 +35,9 @@ const fetchData = async () => {
 
 const fetchFilteredData = async (searchTerms = ['']) => {
     try {
+        console.log("api: fetchFilteredData: API_BASE_URL:", API_BASE_URL);
         console.log("api: fetchFilteredData: searchTerms:", searchTerms);
-        const url = `http://localhost:3001/api/filteredJobsAndSearchTerms`;
+        const url = `${API_BASE_URL}/filteredJobsAndSearchTerms`;
         const jsonPayload = {
             filterTerms: searchTerms
         };
@@ -42,7 +60,9 @@ const fetchFilteredData = async (searchTerms = ['']) => {
 
 const fetchSearchTerms = async () => {
     try {
-        const response = await fetch('http://localhost:3001/api/searchTerms');
+        console.log("api: fetchSearchTerms: API_BASE_URL:", API_BASE_URL);
+        const url = `${API_BASE_URL}/searchTerms`;
+        const response = await fetch(url);
         const data = await response.json();
         return data;
     } catch (error) {
@@ -53,9 +73,15 @@ const fetchSearchTerms = async () => {
 
 const fetchJobDetails = async (jobId) => {
     try {
-        const response = await fetch(`http://localhost:3001/api/job/${jobId}`);
+        console.log("api: fetchJobDetails: API_BASE_URL:", API_BASE_URL);
+        console.log("api: fetchJobDetails: jobId:", jobId);
+        const url = `${API_BASE_URL}/job/${jobId}`;
+        const response = await fetch(url);
         const data = await response.json();
-        return data[0];
+        console.log("api: fetchJobDetails: data:", data);
+        const normalisedData = normaliseData(data);
+        console.log("api: fetchJobDetails: normalisedData:", normalisedData);
+        return normalisedData[0];
     } catch (error) {
         console.error("There was an error fetching the job details", error);
         return null;
@@ -65,18 +91,23 @@ const fetchJobDetails = async (jobId) => {
 const isPatchEnabled = true;
 
 const patchJobDetails = async (jobId, field, value) => {
+    console.log("api: patchJobDetails: API_BASE_URL:", API_BASE_URL);
     console.log("patchJobDetails(", jobId, field, value,")");
     if (isPatchEnabled) {
         console.log("Patching is enabled");
         try {
-            const response = await fetch(`http://localhost:3001/api/job/${jobId}`, {
+            const patchBody = JSON.stringify({ field, value });
+            console.log("api: patchJobDetails: patchBody:\n", patchBody);
+            console.log("\n");
+            const response = await fetch(`${API_BASE_URL}/job/${jobId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ field, value })
+                body: patchBody
             });
             const data = await response.json();
+            console.log("api: patchJobDetails: data:", data);
             return data;
         } catch (error) {
             console.error("There was an error patching the job details", error);
