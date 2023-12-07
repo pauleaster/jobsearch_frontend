@@ -13,4 +13,11 @@ const createLowercaseDBField = (webField) => {
     return result;
 }
 
-export { createLowercaseDBField };
+const normaliseData = (data) => {
+    if (!Array.isArray(data)) {
+        return [data];
+    }
+    return data;
+};
+
+export { createLowercaseDBField, normaliseData };

@@ -1,20 +1,29 @@
-src/
-│
-├── model/
-│   ├── api.js             # Functions to fetch data from the server
-│
-├── view/
-│   ├── components/        # Reusable components
-│   │   ├── DataTable.js   # DataTable component
-│   │   └── JobDetailsTable.js # JobDetailsTable component
-│   ├── App.css
-│   └── App.js             # App component as the main view
-│
-├── controller/
-│   └── AppController.js   # Event handlers and state management
-│
-├── utils/
-│   └── transform.js   # Event handlers and state management
-│
-├── index.css
-└── index.js               # Entry point
+.
+├── README.md
+├── mvc_tree.txt
+├── package-lock.json
+├── package.json
+└── src
+    ├── App.test.js
+    ├── controller
+    │   └── AppController.js
+    ├── index.css
+    ├── index.js
+    ├── logo.svg
+    ├── model
+    │   └── api.js
+    ├── reportWebVitals.js
+    ├── setupTests.js
+    ├── utils
+    │   └── transform.js
+    └── view
+        ├── App.css
+        ├── App.js
+        └── components
+            ├── DataTable.js
+            ├── FetchButtons.js
+            ├── JobDetailsTable.js
+            ├── SaveConfirmationDialog.js
+            └── SearchTerms.js
+
+6 directories, 20 files
