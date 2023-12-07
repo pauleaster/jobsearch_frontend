@@ -147,3 +147,22 @@ th {
 .fetch-buttons-container button {
   margin: 0 10px; /* Adjust spacing between buttons */
 }
+
+.table-link {
+  color: #61dafb; /* A light shade of blue; adjust as needed */
+  text-decoration: none; /* Optional: Removes underline */
+}
+
+.table-link:hover {
+  color: #a0e0ff; /* A lighter shade for hover; adjust as needed */
+  text-decoration: underline; /* Optional: Adds underline on hover */
+}
+
+.table-link:visited {
+  color: #7f9fd6; /* A more purple shade for visited links; adjust as needed */
+}
+
+.table-link:visited:hover {
+  color: #9ab8e0; /* A lighter purple shade for visited links on hover */
+  text-decoration: underline; /* Optional: Adds underline on hover */
+}

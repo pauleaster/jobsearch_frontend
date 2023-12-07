@@ -4,6 +4,27 @@ import { createLowercaseDBField } from '../../utils/transform';
 
 const JobDetailsTable = ({ details, onRowClick, editingRow, editingValue, onEditValueChange, onUpdateRow }) => {
     if (!details) return null;
+
+
+    const renderLaunchableRow = (label, value) => {
+      const fieldName = createLowercaseDBField(label);
+      const fieldValue = details[fieldName];
+
+      return (
+        <tr key={label}>
+          <td>{label}</td>
+          <td>
+            {fieldValue ? (
+              <a href={fieldValue} target="_blank" rel="noopener noreferrer" className="table-link">
+                {fieldValue} ↗
+              </a>
+            ) : (
+              '-'
+            )}
+          </td>
+        </tr>
+      );
+    };
   
     
     const renderEditableRow = (label, value) => {
@@ -52,7 +73,7 @@ const JobDetailsTable = ({ details, onRowClick, editingRow, editingValue, onEdit
           <tbody>
             {renderUneditableRow('Job Id', details.job_id)}
             {renderUneditableRow('Job Number', details.job_number)}
-            {renderEditableRow('Job URL', details.job_url)}
+            {renderLaunchableRow('Job URL', details.job_url)}
             {renderEditableRow('Title', details.title)}
             {renderEditableRow('Comments', details.comments)}
             {renderEditableRow('Requirements', details.requirements)}
