@@ -14,8 +14,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start-http": "cross-env PORT=3000 react-scripts start",
-    "start-https": "cross-env PORT=3003 HTTPS=true react-scripts start",
+    "start-http": "node_modules\\.bin\\cross-env PORT=3000 react-scripts start",
+    "start-https": "node_modules\\.bin\\cross-env PORT=3003 HTTPS=true react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
