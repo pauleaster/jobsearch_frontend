@@ -15,6 +15,7 @@ const AppController = () => {
     const [searchTerms, setSearchTerms] = useState([]);
     const [showSearchTerms, setShowSearchTerms] = useState(false);
     const [selectedTerms, setSelectedTerms] = useState(new Set());
+    const [selectedJobId, setSelectedJobId] = useState(null);
 
 
     
@@ -78,6 +79,7 @@ const AppController = () => {
         const details = await fetchJobDetails(jobId);
         console.log("handleJobClick: details:", details);
         setJobDetails(details);
+        setSelectedJobId(jobId); // Update the selected job ID
     };
 
     const handleRowClick = (label) => {
@@ -151,6 +153,7 @@ const AppController = () => {
                 editingValue={editingValue}
                 onEditValueChange={setEditingValue}
                 onUpdateRow={handleSaveWithConfirmation}
+                selectedJobId={selectedJobId}
             />
 
 
