@@ -20,7 +20,8 @@ const App = ({
     editingRow, 
     editingValue, 
     onEditValueChange, 
-    onUpdateRow 
+    onUpdateRow,
+    selectedJobId
 }) => {
     return (
         <div className="App">
@@ -43,7 +44,8 @@ const App = ({
                     <div className='table-container'>
                         <DataTable 
                             data={jobs} 
-                            onJobClick={onJobClick} 
+                            onJobClick={onJobClick}
+                            selectedJobId={selectedJobId}
                         />
                     </div>
                 </div>

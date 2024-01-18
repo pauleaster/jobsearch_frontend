@@ -2,6 +2,10 @@ body {
   background-color: #282c34; /* Or whatever color you're using */
 }
 
+.selected-row{
+  background-color: #4d515b;
+
+}
 
 .App {
   text-align: center;

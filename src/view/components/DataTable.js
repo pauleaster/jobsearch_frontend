@@ -1,6 +1,6 @@
 import React from 'react';
 
-const DataTable = ({ data, onJobClick }) => {
+const DataTable = ({ data, onJobClick, selectedJobId  }) => {
     return (
       <div className="table-container">
         <table>
@@ -12,7 +12,10 @@ const DataTable = ({ data, onJobClick }) => {
           </thead>
           <tbody>
             {data.map((job) => (
-            <tr key={job.job_id} onClick={() => onJobClick(job.job_id, job.job_number)}>
+            <tr key={job.job_id} 
+            onClick={() => onJobClick(job.job_id, job.job_number)}
+            className={job.job_id === selectedJobId ? 'selected-row' : ''}
+            >
             <td>{job.job_number}</td>
             <td>{job.matching_terms}</td>
             </tr>
