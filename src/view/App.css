@@ -170,3 +170,8 @@ th {
   color: #9ab8e0; /* A lighter purple shade for visited links on hover */
   text-decoration: underline; /* Optional: Adds underline on hover */
 }
+
+.left-align-pre-wrap {
+  text-align: left;
+  white-space: pre-wrap;
+}
