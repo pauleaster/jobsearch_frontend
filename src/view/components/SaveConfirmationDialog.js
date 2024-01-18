@@ -11,8 +11,8 @@ const SaveConfirmationDialog = ({ isOpen, onConfirm, onClose }) => {
             <h2>Save Confirmation</h2>
             <p>Are you sure you want to save?</p>
             <div className="modal-button-group">
-                <button className="modal-button" onClick={onConfirm}>Yes</button>
                 <button className="modal-button no" onClick={onClose}>No</button>
+                <button className="modal-button" onClick={onConfirm}>Yes</button>
             </div>
         </Modal>
     );
