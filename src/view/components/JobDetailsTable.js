@@ -27,7 +27,7 @@ const JobDetailsTable = ({ details, onRowClick, editingRow, editingValue, onEdit
     };
   
     
-    const renderEditableRow = (label, value) => {
+    const renderSingleLineEditableRow  = (label, value) => {
 
       const fieldName = createLowercaseDBField(label);
       const fieldValue = details[fieldName];
@@ -38,6 +38,31 @@ const JobDetailsTable = ({ details, onRowClick, editingRow, editingValue, onEdit
                   {editingRow === label ? (
                       <>
                           <input
+                              value={editingValue}
+                              onChange={(e) => onEditValueChange(e.target.value)}
+                              onBlur={onUpdateRow}
+                          />
+                          <button onClick={onUpdateRow}>Save</button>
+                      </>
+                  ) : (
+                    fieldValue || '-'
+                  )}
+              </td>
+          </tr>
+      );
+    };
+  
+    const renderMultiLineEditableRow  = (label, value) => {
+
+      const fieldName = createLowercaseDBField(label);
+      const fieldValue = details[fieldName];
+      return (
+          <tr key={label} onClick={() => onRowClick(label)}>
+              <td>{label}</td>
+              <td className={editingRow === label ? "" : "left-align-pre-wrap"}>
+                {editingRow === label ? (
+                      <>
+                          <textarea
                               value={editingValue}
                               onChange={(e) => onEditValueChange(e.target.value)}
                               onBlur={onUpdateRow}
@@ -74,14 +99,14 @@ const JobDetailsTable = ({ details, onRowClick, editingRow, editingValue, onEdit
             {renderUneditableRow('Job Id', details.job_id)}
             {renderUneditableRow('Job Number', details.job_number)}
             {renderLaunchableRow('Job URL', details.job_url)}
-            {renderEditableRow('Title', details.title)}
-            {renderEditableRow('Comments', details.comments)}
-            {renderEditableRow('Requirements', details.requirements)}
-            {renderEditableRow('Follow Up', details.follow_up)}
-            {renderEditableRow('Highlight', details.highlight)}
-            {renderEditableRow('Applied', details.applied)}
-            {renderEditableRow('Contact', details.contact)}
-            {renderEditableRow('Application Comments', details.application_comments)}
+            {renderSingleLineEditableRow ('Title', details.title)}
+            {renderMultiLineEditableRow('Comments', details.comments)}
+            {renderMultiLineEditableRow('Requirements', details.requirements)}
+            {renderSingleLineEditableRow ('Follow Up', details.follow_up)}
+            {renderSingleLineEditableRow ('Highlight', details.highlight)}
+            {renderSingleLineEditableRow ('Applied', details.applied)}
+            {renderMultiLineEditableRow('Contact', details.contact)}
+            {renderMultiLineEditableRow('Application Comments', details.application_comments)}
           </tbody>
         </table>
       </div>
