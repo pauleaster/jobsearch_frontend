@@ -33,6 +33,38 @@ const fetchData = async () => {
     }
 }
 
+const fetchAvailableJobs = async () => {
+    try {
+        console.log("api: fetchAvailableJobs")
+        const jobs = await fetchData(); // Assuming fetchData returns an array of jobs
+        console.log("api: fetchAvailableJobs: jobs:", jobs)
+        if (!jobs) return null;
+
+        const wordsToCheck = ["no", "longer", "advertised"]; // Words to check for in comments
+
+        const availableJobsPromises = jobs.map(async (job) => {
+            const jobDetails = await fetchJobDetails(job.job_id);
+            if (jobDetails && jobDetails.comments) {
+                const commentsLower = jobDetails.comments.toLowerCase();
+                // Check if all words are present in comments
+                const allWordsPresent = wordsToCheck.every(word => commentsLower.includes(word));
+                if (!allWordsPresent) {
+                    return jobDetails; // Include job if not all words are present
+                }
+            }
+            return null; // Exclude job if all words are present
+        });
+
+        // Resolve all promises and filter out null values (excluded jobs)
+        const availableJobs = (await Promise.all(availableJobsPromises)).filter(job => job !== null);
+        return availableJobs;
+    } catch (error) {
+        console.error("There was an error in the process of fetching available jobs", error);
+        return null;
+    }
+};
+
+
 const fetchFilteredData = async (searchTerms = ['']) => {
     try {
         console.log("api: fetchFilteredData: API_BASE_URL:", API_BASE_URL);
@@ -118,4 +150,4 @@ const patchJobDetails = async (jobId, field, value) => {
     }
 }
 
-export { fetchData, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails };
+export { fetchAvailableJobs, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails };
