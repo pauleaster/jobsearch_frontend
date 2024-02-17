@@ -33,58 +33,6 @@ const fetchData = async () => {
     }
 }
 
-const fetchAvailableJobs = async () => {
-    try {
-        console.log("api: fetchAvailableJobs");
-        const jobs = await fetchData(); // Assuming fetchData returns an array of jobs
-        console.log("api: fetchAvailableJobs: jobs:", jobs);
-        if (!jobs) return null;
-
-        const wordsToCheck = ["no", "longer", "advertised"]; // Words to check for in comments
-
-        // Function to fetch only comments in batches
-        async function fetchCommentsInBatches(jobIds, limit = 5) {
-            let commentsDetails = [];
-            for (let i = 0; i < jobIds.length; i += limit) {
-                const batchIds = jobIds.slice(i, i + limit);
-                const batchCommentsPromises = batchIds.map(async id => {
-                    const details = await fetchJobDetails(id);
-                    return { job_id: id, comments: details.comments }; // Return only job_id and comments
-                });
-                const batchComments = await Promise.all(batchCommentsPromises);
-                commentsDetails = commentsDetails.concat(batchComments);
-            }
-            return commentsDetails;
-        }
-
-        const jobIds = jobs.map(job => job.job_id);
-        const commentsDetails = await fetchCommentsInBatches(jobIds);
-
-        const filteredJobIds = commentsDetails.filter(({ comments }) => {
-            if (!comments) return true; // Include jobs with null comments
-            const commentsLower = comments.toLowerCase();
-            return !wordsToCheck.some(word => commentsLower.includes(word)); // Exclude if any specified word is present
-        }).map(job => job.job_id);
-
-        // Filter the original jobs to match the filtered IDs and map to the desired structure
-        const availableJobs = jobs.filter(job => filteredJobIds.includes(job.job_id))
-                                  .map(job => ({
-                                      job_id: job.job_id,
-                                      job_number: job.job_number,
-                                      matching_terms: job.matching_terms
-                                  }));
-
-        console.log("api: fetchAvailableJobs: availableJobs:", availableJobs);
-        return availableJobs;
-    } catch (error) {
-        console.error("There was an error in the process of fetching available jobs", error);
-        return null;
-    }
-};
-
-
-
-
 const fetchFilteredData = async (searchTerms = ['']) => {
     try {
         console.log("api: fetchFilteredData: API_BASE_URL:", API_BASE_URL);
@@ -170,4 +118,4 @@ const patchJobDetails = async (jobId, field, value) => {
     }
 }
 
-export { fetchAvailableJobs, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails };
+export { fetchData, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails };

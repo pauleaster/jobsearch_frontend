@@ -1,6 +1,6 @@
 // src>controller>AppController.js
 import React, { useState, useEffect } from 'react';
-import { fetchAvailableJobs, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails } from '../model/api';
+import { fetchData, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails } from '../model/api';
 import App from '../view/App';
 import { createLowercaseDBField } from '../utils/transform';
 import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
@@ -20,7 +20,7 @@ const AppController = () => {
 
     
     const handleFetchData = async () => {
-        const data = await fetchAvailableJobs();
+        const data = await fetchData();
         setJobs(data);
         setJobsFetched(true);  // Set to true once data is fetched
     };
