@@ -33,13 +33,18 @@ const fetchData = async () => {
     }
 }
 
-const fetchFilteredData = async (searchTerms = ['']) => {
+const fetchFilteredData = async (searchTerms = [''], currentJobs, appliedJobs) => {
     try {
         console.log("api: fetchFilteredData: API_BASE_URL:", API_BASE_URL);
         console.log("api: fetchFilteredData: searchTerms:", searchTerms);
+        console.log("api: fetchFilteredData: currentJobs:", currentJobs);
+        console.log("api: fetchFilteredData: appliedJobs:", appliedJobs);
+
         const url = `${API_BASE_URL}/filteredJobsAndSearchTerms`;
         const jsonPayload = {
-            filterTerms: searchTerms
+            filterTerms: searchTerms,
+            currentJobs: currentJobs,
+            appliedJobs: appliedJobs
         };
         console.log("api: fetchFilteredData: jsonPayload:", jsonPayload);
         const response = await fetch(url, {
