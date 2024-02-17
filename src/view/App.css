@@ -175,3 +175,47 @@ th {
   text-align: left;
   white-space: pre-wrap;
 }
+/* Common styling for checkboxes, radios, and labels */
+div input[type="checkbox"],
+div input[type="radio"],
+div label {
+  margin-right: 5px; /* Adjust spacing between checkbox/radio and label text */
+  font-size: 14px; /* Apply the same font size as other elements */
+}
+
+/* Custom styling for checkbox and radio labels */
+div label {
+  display: flex; /* Align checkbox/radio and label text horizontally */
+  align-items: center; /* Vertically center checkbox/radio with label text */
+  margin-bottom: 5px; /* Adjust spacing between checkboxes/radios */
+  cursor: pointer; /* Change cursor to pointer when hovering over label */
+}
+
+/* Styling when checkbox/radio is checked */
+div input[type="checkbox"]:checked + label::before,
+div input[type="radio"]:checked + label::before {
+  content: '\2713'; /* Unicode checkmark symbol */
+  display: inline-block;
+  width: 16px; /* Adjust size of checkmark */
+  height: 16px; /* Adjust size of checkmark */
+  text-align: center;
+  line-height: 16px; /* Vertically center checkmark */
+  background-color: #61dafb; /* Color of checkmark when checked */
+  border-radius: 3px; /* Rounded corners for checkmark */
+  margin-right: 5px; /* Adjust spacing between checkmark and label text */
+  color: white; /* Color of checkmark symbol */
+}
+
+/* Styling for unchecked checkbox */
+div input[type="checkbox"] + label::before,
+div input[type="radio"] + label::before {
+  content: '';
+  display: inline-block;
+  width: 16px; /* Adjust size of checkbox/radio */
+  height: 16px; /* Adjust size of checkbox/radio */
+  border: 1px solid #ccc; /* Border color for checkbox/radio */
+  border-radius: 3px; /* Rounded corners for checkbox/radio */
+}
+fieldset legend {
+  font-size: 16px;
+}

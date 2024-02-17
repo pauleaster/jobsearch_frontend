@@ -4,6 +4,7 @@ import DataTable from './components/DataTable';
 import JobDetailsTable from './components/JobDetailsTable';
 import FetchButtons from './components/FetchButtons';
 import SearchTerms from './components/SearchTerms';
+import JobTypeControl from './components/JobTypeControl';
 
 const App = ({ 
     jobs, 
@@ -21,7 +22,11 @@ const App = ({
     editingValue, 
     onEditValueChange, 
     onUpdateRow,
-    selectedJobId
+    selectedJobId,
+    currentJobs,
+    handleCurrentJobsChange,
+    appliedJobs,
+    handleAppliedJobsChange
 }) => {
     return (
         <div className="App">
@@ -30,6 +35,16 @@ const App = ({
                     onFetchData={onFetchData} 
                     jobsFetched={jobsFetched}
                     onFilterClick={onFilterClick} 
+                />
+                 <JobTypeControl
+                    jobTypeLabel="Current Jobs"
+                    jobTypeValue={currentJobs}
+                    setJobTypeValue={handleCurrentJobsChange}
+                />
+                <JobTypeControl
+                    jobTypeLabel="Applied Jobs"
+                    jobTypeValue={appliedJobs}
+                    setJobTypeValue={handleAppliedJobsChange}
                 />
                 <div className="app-content">
                     {showSearchTerms && (

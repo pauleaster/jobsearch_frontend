@@ -1,5 +1,5 @@
 // src>controller>AppController.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { fetchData, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails } from '../model/api';
 import App from '../view/App';
 import { createLowercaseDBField } from '../utils/transform';
@@ -16,14 +16,23 @@ const AppController = () => {
     const [showSearchTerms, setShowSearchTerms] = useState(false);
     const [selectedTerms, setSelectedTerms] = useState(new Set());
     const [selectedJobId, setSelectedJobId] = useState(null);
+    const [currentJobs, setCurrentJobs] = useState(null); // Can be null, true, or false
+    const [appliedJobs, setAppliedJobs] = useState(null); // Can be null, true, or false
+
+
+
 
 
     
     const handleFetchData = async () => {
-        const data = await fetchData();
-        setJobs(data);
-        setJobsFetched(true);  // Set to true once data is fetched
+        // Call handleFilteredFetchData with an empty Set to signify no specific filter criteria
+        setSelectedTerms(new Set()); // initialise to an empty set and save state
+        await handleFilteredFetchData(new Set());
+        // Since handleFilteredFetchData already sets jobs and jobsFetched,
+        // there's no need to duplicate that logic here.
     };
+    
+    
 
     const handleFilterClick = async () => {
         const fetchedSearchTerms = await fetchSearchTerms();
@@ -39,13 +48,15 @@ const AppController = () => {
         
     };
 
-    const handleFilteredFetchData = async (selectedTermsSet) => {
+    const handleFilteredFetchData = useCallback(async (selectedTermsSet ) => {
         const toggledSelectedTerms = Array.from(selectedTermsSet);
         console.log("handleFilteredFetchData: toggledSelectedTerms:", toggledSelectedTerms);
-        const data = await fetchFilteredData(toggledSelectedTerms);
+        console.log("handleFilteredFetchData(currentJobs, appliedJobs):", currentJobs, appliedJobs);
+        const data = await fetchFilteredData(toggledSelectedTerms, currentJobs, appliedJobs);
         setJobs(data);
         setJobsFetched(true);  // Set to true once data is fetched
-    };
+    }, [currentJobs, appliedJobs]);
+    
 
     const handleToggleTerm = (term) => {
         const newSelectedTerms = new Set(selectedTerms);
@@ -60,7 +71,7 @@ const AppController = () => {
             newSelectedTerms.add(term);
             console.log("handleToggleTerm: newSelectedTerms.add(", term, ")");
         }
-        setSelectedTerms(newSelectedTerms);
+        setSelectedTerms(newSelectedTerms); // update state
         // launch handleFetchData with the selected terms, converting to an array first
         handleFilteredFetchData(newSelectedTerms);
 
@@ -132,6 +143,26 @@ const AppController = () => {
         // Close the modal
         setIsModalOpen(false);
     };
+
+    useEffect(() => {
+        console.log("handleCurrentJobsChange: Current Jobs change:", currentJobs);
+        console.log("handleAppliedJobsChange: Applied Jobs change:", appliedJobs);
+        console.log("handleFilteredFetchData(selectedTerms):", selectedTerms);
+        handleFilteredFetchData(selectedTerms);
+    }, [currentJobs, appliedJobs, selectedTerms, handleFilteredFetchData])
+
+
+    const handleCurrentJobsChange = (newValue) => {
+        console.log("handleCurrentJobsChange: Current Jobs change:", newValue);
+        setCurrentJobs(newValue);
+    };
+    
+
+    const handleAppliedJobsChange = (newValue) => {
+        console.log("handleAppliedJobsChange: Applied Jobs change:", newValue);
+        setAppliedJobs(newValue);
+    };
+    
     
     
 
@@ -154,6 +185,10 @@ const AppController = () => {
                 onEditValueChange={setEditingValue}
                 onUpdateRow={handleSaveWithConfirmation}
                 selectedJobId={selectedJobId}
+                currentJobs={currentJobs}
+                appliedJobs={appliedJobs}
+                handleCurrentJobsChange={handleCurrentJobsChange}
+                handleAppliedJobsChange={handleAppliedJobsChange}
             />
 
 
