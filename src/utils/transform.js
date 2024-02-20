@@ -40,13 +40,13 @@ const isDateField = (field) => {
  * @returns {string} The date string in ISO format.
  */
 const convertDDMMYYYYToISO = (ddMMYYYYStr) => {
-    console.log(`convertDDMMYYYYToISO("${ddMMYYYYStr}")`);
+    // console.log(`convertDDMMYYYYToISO("${ddMMYYYYStr}")`);
     if (!ddMMYYYYStr) return '';
     const parts = ddMMYYYYStr.split('/');
     if (parts.length === 3) {
         const [day, month, year] = parts;
         const newDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-        console.log(`convertDDMMYYYYToISO: newDate = "${newDate}"`);
+        // console.log(`convertDDMMYYYYToISO: newDate = "${newDate}"`);
         return newDate;
     }
     // console.log("convertDDMMYYYYToISO: invalid date string returned empty string");
@@ -60,7 +60,7 @@ const convertDDMMYYYYToISO = (ddMMYYYYStr) => {
  * @returns {string} The date string in dd/MM/yyyy format.
  */
 const formatDateToDDMMYYYY = (isoStr) => {
-    console.log(`formatDateToDDMMYYYY("${isoStr}")`);
+    // console.log(`formatDateToDDMMYYYY("${isoStr}")`);
     if (!isoStr) return '';
 
     // Split the ISO string on 'T' to separate date from time, if present
@@ -74,7 +74,7 @@ const formatDateToDDMMYYYY = (isoStr) => {
 
     // Format the date into dd/MM/yyyy
     const newDate = `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
-    console.log(`formatDateToDDMMYYYY: newDate = "${newDate}"`);
+    // console.log(`formatDateToDDMMYYYY: newDate = "${newDate}"`);
     return newDate;
 };
 

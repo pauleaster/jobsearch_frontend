@@ -25,11 +25,11 @@ const AppController = () => {
     const handleDateChange = (event) => {
         try {
             const dateInDDMMYYYY = event.target.value;
-            console.log("handleDateChange(", dateInDDMMYYYY, ")");
+            // console.log("handleDateChange(", dateInDDMMYYYY, ")");
             // Assuming convertDDMMYYYYToISO function exists and does the conversion
             const dateInISO = convertDDMMYYYYToISO(dateInDDMMYYYY);
-            console.log("handleDateChange: dateInISO:", dateInISO);
-            console.log("handleDateChange: setEditingDateValue(", dateInISO, ")");
+            // console.log("handleDateChange: dateInISO:", dateInISO);
+            // console.log("handleDateChange: setEditingDateValue(", dateInISO, ")");
             setEditingDateValue(dateInISO);
         }
         catch (error) {
@@ -62,15 +62,15 @@ const AppController = () => {
             // console.log("handleFilterClick: handleToggleTerm type:", typeof handleToggleTerm); 
         }
         else {
-            console.log("handleFilterClick: fetchSearchTerms returned null");
+            // console.log("handleFilterClick: fetchSearchTerms returned null");
         }
 
     };
 
     const handleFilteredFetchData = useCallback(async (selectedTermsSet) => {
         const toggledSelectedTerms = Array.from(selectedTermsSet);
-        console.log("handleFilteredFetchData: toggledSelectedTerms:", toggledSelectedTerms);
-        console.log("handleFilteredFetchData(currentJobs, appliedJobs):", currentJobs, appliedJobs);
+        // console.log("handleFilteredFetchData: toggledSelectedTerms:", toggledSelectedTerms);
+        // console.log("handleFilteredFetchData(currentJobs, appliedJobs):", currentJobs, appliedJobs);
         const data = await fetchFilteredData(toggledSelectedTerms, currentJobs, appliedJobs);
         setJobs(data);
         setJobsFetched(true);  // Set to true once data is fetched
@@ -82,13 +82,13 @@ const AppController = () => {
         if (newSelectedTerms.has(term)) {
             if (newSelectedTerms.size > 1) {
                 newSelectedTerms.delete(term);
-                console.log("handleToggleTerm: newSelectedTerms.delete(", term, ")");
+                // console.log("handleToggleTerm: newSelectedTerms.delete(", term, ")");
             } else {
                 return;
             }
         } else {
             newSelectedTerms.add(term);
-            console.log("handleToggleTerm: newSelectedTerms.add(", term, ")");
+            // console.log("handleToggleTerm: newSelectedTerms.add(", term, ")");
         }
         setSelectedTerms(newSelectedTerms); // update state
         // launch handleFetchData with the selected terms, converting to an array first
@@ -97,7 +97,7 @@ const AppController = () => {
     };
 
     useEffect(() => {
-        console.log("AppController: showSearchTerms changed:", showSearchTerms);
+        // console.log("AppController: showSearchTerms changed:", showSearchTerms);
         // console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showSearchTerms]);
@@ -105,15 +105,15 @@ const AppController = () => {
     // console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); // Should log 'function'
 
     const handleJobClick = async (jobId) => {
-        console.log("handleJobClick(", jobId, ")");
+        // console.log("handleJobClick(", jobId, ")");
         const details = await fetchJobDetails(jobId);
-        console.log("handleJobClick: details:", details);
+        // console.log("handleJobClick: details:", details);
         setJobDetails(details);
         setSelectedJobId(jobId); // Update the selected job ID
     };
 
     const handleRowClick = (label) => {
-        console.log("handleRowClick(", label, ")");
+        // console.log("handleRowClick(", label, ")");
         if (jobDetails) {
             setEditingRow(label);
             const dbField = createLowercaseDBField(label);
@@ -132,21 +132,21 @@ const AppController = () => {
     };
 
     const handleUpdateRow = async () => {
-        console.log("handleUpdateRow()");
+        // console.log("handleUpdateRow()");
         if (editingRow && jobDetails) {
-            console.log("handleUpdateRow: editingRow:", editingRow);
-            console.log("handleUpdateRow: editingValue:", editingValue);
+            // console.log("handleUpdateRow: editingRow:", editingRow);
+            // console.log("handleUpdateRow: editingValue:", editingValue);
             let valueToSend;
             if (isDateField(editingRow)) {
                 valueToSend = editingDateValue;
-                console.log("handleUpdateRow: editingDateValue:", editingDateValue);
-                console.log("handleUpdateRow: valueToSend:", valueToSend);
+                // console.log("handleUpdateRow: editingDateValue:", editingDateValue);
+                // console.log("handleUpdateRow: valueToSend:", valueToSend);
             }
             else {
                 valueToSend = editingValue;
-                console.log("handleUpdateRow: valueToSend:", valueToSend);
+                // console.log("handleUpdateRow: valueToSend:", valueToSend);
             }
-            console.log("Launching patchJobDetails(", jobDetails.job_id, editingRow, valueToSend, ")");
+            // console.log("Launching patchJobDetails(", jobDetails.job_id, editingRow, valueToSend, ")");
             await patchJobDetails(jobDetails.job_id, editingRow, valueToSend);
             setEditingRow(null);
             setEditingValue('');
@@ -191,26 +191,26 @@ const AppController = () => {
 
 
     useEffect(() => {
-        console.log("handleCurrentJobsChange: Current Jobs change:", currentJobs);
-        console.log("handleAppliedJobsChange: Applied Jobs change:", appliedJobs);
-        console.log("handleFilteredFetchData(selectedTerms):", selectedTerms);
+        // console.log("handleCurrentJobsChange: Current Jobs change:", currentJobs);
+        // console.log("handleAppliedJobsChange: Applied Jobs change:", appliedJobs);
+        // console.log("handleFilteredFetchData(selectedTerms):", selectedTerms);
         handleFilteredFetchData(selectedTerms);
     }, [currentJobs, appliedJobs, selectedTerms, handleFilteredFetchData])
 
 
     const handleCurrentJobsChange = (newValue) => {
-        console.log("handleCurrentJobsChange: Current Jobs change:", newValue);
+        // console.log("handleCurrentJobsChange: Current Jobs change:", newValue);
         setCurrentJobs(newValue);
     };
 
 
     const handleAppliedJobsChange = (newValue) => {
-        console.log("handleAppliedJobsChange: Applied Jobs change:", newValue);
+        // console.log("handleAppliedJobsChange: Applied Jobs change:", newValue);
         setAppliedJobs(newValue);
     };
 
 
-    console.log('AppController:handleDateChange type:', typeof handleDateChange); // Should log 'function'
+    // console.log('AppController:handleDateChange type:', typeof handleDateChange); // Should log 'function'
     // Log AppController props
     // console.log('AppController:props:', { props });
 
