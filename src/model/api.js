@@ -97,17 +97,7 @@ const isPatchEnabled = true;
 
 const patchJobDetails = async (jobId, field, value) => {
     console.log("api: patchJobDetails: API_BASE_URL:", API_BASE_URL);
-    console.log("patchJobDetails(", jobId, field, value,")");
-
-    // Convert date if the field is known to be a date field
-    if (field === "Application date" && value) {
-        const parts = value.split('/');
-        if (parts.length === 3) {
-            // Assuming the format is DD/MM/YYYY
-            const [day, month, year] = parts;
-            value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`; // Convert to YYYY-MM-DD
-        }
-    }
+    console.log("patchJobDetails(", jobId, field, value, ")");
 
     if (isPatchEnabled) {
         console.log("Patching is enabled");
