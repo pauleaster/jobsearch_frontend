@@ -26,7 +26,10 @@ const App = ({
     currentJobs,
     handleCurrentJobsChange,
     appliedJobs,
-    handleAppliedJobsChange
+    handleAppliedJobsChange,
+    handleDateChange,
+    editingDateValue
+
 }) => {
     return (
         <div className="App">
@@ -72,6 +75,8 @@ const App = ({
                         editingValue={editingValue}
                         onEditValueChange={onEditValueChange}
                         onUpdateRow={onUpdateRow}
+                        // onEditDateChange={() => console.log("Static test")}
+                        onEditDateChange={handleDateChange}
                         />
                 )}
             </header>

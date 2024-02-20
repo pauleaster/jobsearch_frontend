@@ -9,18 +9,18 @@ const SearchTerms = ({ searchTerms, selectedTerms = new Set(), onToggleTerm, isS
     let bad_result = false;
     // Check if onToggleTerm is a function
     if (typeof onToggleTerm !== 'function') {
-        console.log("Error: onToggleTerm is not a function");
+        // console.log("Error: onToggleTerm is not a function");
         bad_result = true; // Return null or some error message component
     }
 
     if (!searchTerms || searchTerms.length === 0) {
-        console.log("SearchTerms: no content");
+        // console.log("SearchTerms: no content");
         bad_result = true; // Or return some placeholder like <div>Loading...</div>
     }
     if (bad_result) {
         return null;
     }
-    console.log("SearchTerms: has content, returning the table");
+    // console.log("SearchTerms: has content, returning the table");
 
     // Mapping the search terms to table rows
     const searchTermRows = () => {
