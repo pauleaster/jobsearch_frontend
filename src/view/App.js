@@ -52,7 +52,7 @@ const App = ({
                     jobTypeValue={appliedJob}
                     setJobTypeValue={handleAppliedJobChange}
                 />
-                <div className="app-content">
+                <div className="job-search-data">
                     {showSearchTerms && (
                         <div className="search-terms-container">
                             <SearchTerms
@@ -62,7 +62,7 @@ const App = ({
                                 isShown={showSearchTerms} />
                         </div>
                     )}
-                    <div className='table-container'>
+                    <div className='table-container-1'>
                         <DataTable
                             data={jobs}
                             onJobClick={onJobClick}

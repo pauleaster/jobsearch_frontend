@@ -8,7 +8,7 @@ body {
 }
 
 .App {
-  text-align: center;
+  text-align: left;
 }
 
 .App-logo {
@@ -28,7 +28,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: left; /* changed from center to left */
   justify-content: flex-start; /* changed from center to flex-start */
   font-size: calc(10px + 2vmin);
   color: white;
@@ -47,15 +47,24 @@ body {
   }
 }
 
-.app-content {
+.job-search-data {
   display: flex;
   justify-content: space-between;
 }
 
-.table-container {
+.table-container-1 {
   overflow-y: auto;
   max-height: 400px; /* Adjust this value as per your requirement */
   border: 1px solid #ccc;
+}
+
+.table-container-2 {
+  overflow-x: auto;         /* Enable horizontal scrolling */
+  overflow-y: auto;         /* Keep vertical scrolling */
+  max-height: 400px;        /* Adjust as needed */
+  border: 1px solid #ccc;
+  text-align: left;         /* Left-align table content */
+  margin-left: 0;           /* Align to the left edge */
 }
 
 .search-terms-container {

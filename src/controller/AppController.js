@@ -14,6 +14,7 @@ import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
 const AppController = () => {
     const [jobs, setJobs] = useState([]);
     const [jobDetails, setJobDetails] = useState(null);
+    const [jobFieldMapping, setJobFieldMapping] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
     const [editingValue, setEditingValue] = useState('');
     const [editingDateValue, setEditingDateValue] = useState('');
@@ -115,11 +116,10 @@ const AppController = () => {
     // console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); // Should log 'function'
 
     const handleJobClick = async (jobId) => {
-        // console.log("handleJobClick(", jobId, ")");
-        const details = await fetchJobDetails(jobId);
-        // console.log("handleJobClick: details:", details);
+        const { details, mapping } = await fetchJobDetails(jobId);
         setJobDetails(details);
-        setSelectedJobId(jobId); // Update the selected job ID
+        setJobFieldMapping(mapping);
+        setSelectedJobId(jobId);
     };
 
     const handleRowClick = (label) => {
@@ -162,26 +162,20 @@ const AppController = () => {
 
 
     const handleUpdateRow = async () => {
-        // console.log("handleUpdateRow()");
-        if (editingRow && jobDetails) {
-            // console.log("handleUpdateRow: editingRow:", editingRow);
-            // console.log("handleUpdateRow: editingValue:", editingValue);
+        if (editingRow && jobDetails && jobFieldMapping) {
             let valueToSend;
             if (isDateField(editingRow)) {
                 valueToSend = editingDateValue;
-                // console.log("handleUpdateRow: editingDateValue:", editingDateValue);
-                // console.log("handleUpdateRow: valueToSend:", valueToSend);
-            }
-            else {
+            } else {
                 valueToSend = editingValue;
-                // console.log("handleUpdateRow: valueToSend:", valueToSend);
             }
-            // console.log("Launching patchJobDetails(", jobDetails.job_id, editingRow, valueToSend, ")");
-            await patchJobDetails(jobDetails.job_id, editingRow, valueToSend);
+            // Use the mapping to get the backend field name
+            const backendField = jobFieldMapping[createLowercaseDBField(editingRow)] || editingRow;
+            await patchJobDetails(jobDetails.job_id, backendField, valueToSend);
             setEditingRow(null);
             setEditingValue('');
             setEditingDateValue('');
-            handleJobClick(jobDetails.Id);
+            handleJobClick(jobDetails.job_id);
         }
     };
 
@@ -191,8 +185,9 @@ const AppController = () => {
 
     const handleConfirmSave = async () => {
         await handleUpdateRow();
-        const updatedJobDetails = await fetchJobDetails(jobDetails.Id);
-        setJobDetails(updatedJobDetails);
+        const { details, mapping } = await fetchJobDetails(jobDetails.job_id);
+        setJobDetails(details);
+        setJobFieldMapping(mapping);
         setIsModalOpen(false);
     };
 

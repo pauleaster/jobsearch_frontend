@@ -1,4 +1,5 @@
 import { normaliseData } from "../utils/transform";
+import { denormaliseJobDetails } from '../utils/transform';
 
 /**
  * Expected env, per your note:
@@ -181,17 +182,28 @@ const fetchJobDetails = async (jobId) => {
     const url = `${API_BASE_URL}/jobs/${jobId}`;
     const data = await fetchJson(url);
 
-    // Preserve your existing normalization behaviour
-    const normalisedData = normaliseData(data);
-    return Array.isArray(normalisedData) ? normalisedData[0] : normalisedData;
+    // Get both the normalised data and the mapping
+    const { normalised, mapping } = normaliseData(data);
+    const details = Array.isArray(normalised) ? normalised[0] : normalised; // If normalised is an array, use the first item (single job expected)
+    const fieldMapping = Array.isArray(mapping) ? mapping[0] : mapping; // If mapping is an array, use the first item (single job expected)
+    console.log("fetchJobDetails: normalised details:", details);
+    console.log("fetchJobDetails: field mapping:", fieldMapping);
+
+    // If normalised is an array, use the first item (single job expected)
+    return {
+      details: details,
+      mapping: fieldMapping,
+    };
   } catch (error) {
     console.error("There was an error fetching the job details", error);
     return null;
   }
 };
 
-const updateJob = async (jobId, job) => {
+const updateJob = async (jobId, job, mapping) => {
   try {
+    // Denormalise the job details before sending to API
+    const denormalisedJob = denormaliseJobDetails(job, mapping);
     const url = `${API_BASE_URL}/jobs/${jobId}`;
     return await fetchJson(url, {
       method: "PUT",

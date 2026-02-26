@@ -2,9 +2,33 @@ import React from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css'; // Import the CSS
 import { formatDateToDDMMYYYY } from '../../utils/transform';
-
 import { createLowercaseDBField } from '../../utils/transform';
 
+const FIELDS = [
+  { label: 'Job Id', type: 'uneditable' },
+  { label: 'Job Number', type: 'uneditable' },
+  { label: 'Position', type: 'uneditable' },
+  { label: 'Advertiser', type: 'uneditable' },
+  { label: 'Location', type: 'uneditable' },
+  { label: 'Work Type', type: 'uneditable' },
+  { label: 'Salary', type: 'single-editable' },
+  { label: 'Expired', type: 'boolean-editable' },
+  { label: 'Job URL', type: 'launchable' },
+  { label: 'Job Date', type: 'date-editable' },
+  { label: 'Title', type: 'single-editable' },
+  { label: 'Comments', type: 'multi-editable' },
+  { label: 'Requirements', type: 'multi-editable' },
+  { label: 'Follow Up', type: 'single-editable' },
+  { label: 'Highlight', type: 'single-editable' },
+  { label: 'Applied', type: 'single-editable' },
+  { label: 'Application Date', type: 'date-editable' },
+  { label: 'Contact', type: 'multi-editable' },
+  { label: 'Application Comments', type: 'multi-editable' },
+  { label: 'Unsuccessful', type: 'multi-editable' },
+
+
+  { label: 'Updated At', type: 'uneditable' }
+];
 
 const JOB_PREVIEW_WINDOW_NAME = "jobPreview";
 
@@ -19,183 +43,153 @@ function openJobPreview(url) {
   if (win) win.focus();
 }
 
-
-const JobDetailsTable = ({ details, onRowClick, editingRow, editingValue, editingDateValue, onEditValueChange, onUpdateRow, onEditDateChange }) => {
-
+const JobDetailsTable = ({
+  details,
+  onRowClick,
+  editingRow,
+  editingValue,
+  editingDateValue,
+  onEditValueChange,
+  onUpdateRow,
+  onEditDateChange
+}) => {
   if (!details) return null;
 
-  // console.log("JobDetailsTable props:", { details, onRowClick, editingRow, editingValue, editingDateValue, onEditValueChange, onUpdateRow, onEditDateChange });
-
-
-  const renderLaunchableRow = (label) => {
-    const fieldName = createLowercaseDBField(label);
+  const renderCell = (field) => {
+    const fieldName = createLowercaseDBField(field.label);
     const fieldValue = details[fieldName];
 
-    const clickable = Boolean(fieldValue);
-
-    return (
-      <tr
-        key={label}
-        style={{ cursor: clickable ? "pointer" : "default" }}
-        onClick={() => clickable && openJobPreview(fieldValue)}
-        role={clickable ? "button" : undefined}
-        tabIndex={clickable ? 0 : undefined}
-        onKeyDown={(e) => {
-          if (!clickable) return;
-          if (e.key === "Enter" || e.key === " ") openJobPreview(fieldValue);
-        }}
-      >
-        <td>{label}</td>
-        <td>
-          {fieldValue ? (
-            <a
-              className="table-link"
-              href={fieldValue}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                // Don’t let the row click fire as well
+    switch (field.type) {
+      case 'boolean-editable':
+        return editingRow === field.label ? (
+          <>
+            <select
+              value={editingValue === true ? 'true' : editingValue === false ? 'false' : ''}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
                 e.stopPropagation();
-                // Still reuse the named window (instead of opening many tabs)
-                e.preventDefault();
-                openJobPreview(fieldValue);
+                const v = e.target.value;
+                onEditValueChange(v === '' ? null : v === 'true');
               }}
             >
-              {fieldValue} ↗
-            </a>
-          ) : (
-            "-"
-          )}
-        </td>
-      </tr>
-    );
+              <option value="">-</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+
+            <button onClick={(e) => { e.stopPropagation(); onUpdateRow(); }}>
+              Save
+            </button>
+          </>
+        ) : (
+          fieldValue === true
+            ? 'Yes'
+            : fieldValue === false
+              ? 'No'
+              : '-'
+        );
+      case 'launchable':
+        return fieldValue ? (
+          <a
+            className="table-link"
+            href={fieldValue}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.preventDefault();
+              openJobPreview(fieldValue);
+            }}
+          >
+            {fieldValue} ↗
+          </a>
+        ) : '-';
+
+      case 'single-editable':
+        return editingRow === field.label ? (
+          <>
+            <input
+              value={editingValue}
+              onChange={(e) => onEditValueChange(e.target.value)}
+              onBlur={onUpdateRow}
+            />
+            <button onClick={onUpdateRow}>Save</button>
+          </>
+        ) : (
+          fieldValue || '-'
+        );
+
+      case 'multi-editable':
+        return editingRow === field.label ? (
+          <>
+            <textarea
+              value={editingValue}
+              onChange={(e) => onEditValueChange(e.target.value)}
+              onBlur={onUpdateRow}
+            />
+            <button onClick={onUpdateRow}>Save</button>
+          </>
+        ) : (
+          fieldValue || '-'
+        );
+
+      case 'date-editable': {
+        const displayValue = fieldValue ? formatDateToDDMMYYYY(fieldValue) : '-';
+        return editingRow === field.label ? (
+          <>
+            <input
+              value={editingDateValue}
+              onChange={onEditDateChange}
+              onBlur={onUpdateRow}
+            />
+            <button onClick={onUpdateRow}>Save</button>
+          </>
+        ) : (
+          displayValue
+        );
+      }
+
+      case 'uneditable':
+      default:
+        return fieldValue || '-';
+    }
   };
 
-
-  const renderSingleLineEditableRow = (label, value) => {
-
-    const fieldName = createLowercaseDBField(label);
-    const fieldValue = details[fieldName];
-    return (
-      <tr key={label} onClick={() => onRowClick(label)}>
-        <td>{label}</td>
-        <td>
-          {editingRow === label ? (
-            <>
-              <input
-                value={editingValue}
-                onChange={(e) => onEditValueChange(e.target.value)}
-                onBlur={onUpdateRow}
-              />
-              <button onClick={onUpdateRow}>Save</button>
-            </>
-          ) : (
-            fieldValue || '-'
-          )}
-        </td>
-      </tr>
-    );
-  };
-
-  const renderMultiLineEditableRow = (label, value) => {
-
-    const fieldName = createLowercaseDBField(label);
-    const fieldValue = details[fieldName];
-    return (
-      <tr key={label} onClick={() => onRowClick(label)}>
-        <td>{label}</td>
-        <td className={editingRow === label ? "" : "left-align-pre-wrap"}>
-          {editingRow === label ? (
-            <>
-              <textarea
-                value={editingValue}
-                onChange={(e) => onEditValueChange(e.target.value)}
-                onBlur={onUpdateRow}
-              />
-              <button onClick={onUpdateRow}>Save</button>
-            </>
-          ) : (
-            fieldValue || '-'
-          )}
-        </td>
-      </tr>
-    );
-  };
-
-  const renderUneditableRow = (label, value) => {
-
-    const fieldName = createLowercaseDBField(label);
-    const fieldValue = details[fieldName];
-
-    return (
-      <tr key={label}>
-        <td>{label}</td>
-        <td>{fieldValue || '-'}</td>
-      </tr>
-    );
-  };
-
-  const renderDateEditableRow = (label, value) => {
-
-    const fieldName = createLowercaseDBField(label);
-    // console.log("renderDateEditableRow: fieldName:", fieldName);
-    const fieldValue = details[fieldName];
-    // console.log("renderDateEditableRow: fieldValue:", fieldValue);
-
-    // Convert the ISO format date to dd/MM/yyyy format for display
-    const displayValue = fieldValue ? formatDateToDDMMYYYY(fieldValue) : '-';
-    // console.log("renderDateEditableRow: displayValue:", displayValue);
-
-    return (
-      <tr key={label} onClick={() => onRowClick(label)}>
-        <td>{label}</td>
-        <td>
-          {editingRow === label ? (
-            <>
-              <input
-                value={editingDateValue}
-                onChange={onEditDateChange}
-                onBlur={onUpdateRow}
-              />
-              <button onClick={onUpdateRow}>Save</button>
-            </>
-          ) : (
-            displayValue
-          )}
-        </td>
-      </tr>
-    );
-  };
+  const isEditableType = (type) =>
+    type === 'single-editable' ||
+    type === 'multi-editable' ||
+    type === 'date-editable' ||
+    type === 'boolean-editable';
 
   return (
-    <div className="table-container">
-      <table>
+    <div className="table-container-2">
+      <table className="horizontal-table">
+        <thead>
+          <tr>
+            {FIELDS.map((field) => (
+              <th key={field.label}>{field.label}</th>
+            ))}
+          </tr>
+        </thead>
+
         <tbody>
-          {renderUneditableRow('Job Id', details.job_id)}
-          {renderUneditableRow('Job Number', details.job_number)}
-          {renderLaunchableRow('Job URL')}
-          {renderDateEditableRow('Job Date', details.job_date)}
-          {renderSingleLineEditableRow('Title', details.title)}
-          {renderMultiLineEditableRow('Comments', details.comments)}
-          {renderMultiLineEditableRow('Requirements', details.requirements)}
-          {renderSingleLineEditableRow('Follow Up', details.follow_up)}
-          {renderSingleLineEditableRow('Highlight', details.highlight)}
-          {renderSingleLineEditableRow('Applied', details.applied)}
-          {renderDateEditableRow('Application Date', details.application_date)}
-          {renderMultiLineEditableRow('Contact', details.contact)}
-          {renderMultiLineEditableRow('Application Comments', details.application_comments)}
-          {renderMultiLineEditableRow('Unsuccessful', details.unsuccessful)}
-          {renderUneditableRow('Position', details.position)}
-          {renderUneditableRow('Advertiser', details.advertiser)}
-          {renderUneditableRow('Location', details.location)}
-          {renderUneditableRow('Work Type', details.work_type)}
-          {renderSingleLineEditableRow('Salary', details.salary)}
-          {renderSingleLineEditableRow('Expired', details.expired)}
-          {renderUneditableRow('Updated At', details.updated_at)}
+          <tr>
+            {FIELDS.map((field) => (
+              <td
+                key={field.label}
+                className={field.type === 'multi-editable' && editingRow !== field.label ? 'left-align-pre-wrap' : ''}
+                style={{ cursor: isEditableType(field.type) ? 'pointer' : 'default' }}
+                onClick={() => {
+                  if (isEditableType(field.type)) onRowClick(field.label);
+                }}
+              >
+                {renderCell(field)}
+              </td>
+            ))}
+          </tr>
         </tbody>
       </table>
     </div>
   );
-}
+};
 
 export default JobDetailsTable;

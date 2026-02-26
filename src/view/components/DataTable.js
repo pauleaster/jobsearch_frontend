@@ -2,7 +2,7 @@ import React from 'react';
 
 const DataTable = ({ data, onJobClick, selectedJobId  }) => {
     return (
-      <div className="table-container">
+      <div>
         <table>
           <thead>
             <tr>

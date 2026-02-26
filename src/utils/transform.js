@@ -14,11 +14,18 @@ const createLowercaseDBField = (webField) => {
 }
 
 const normaliseData = (data) => {
-    // If data is an array, normalise each item
     if (Array.isArray(data)) {
-        return data.map(normaliseJobDetails);
+        // For arrays, return arrays of normalised objects and mappings
+        const normalisedArr = [];
+        const mappingsArr = [];
+        data.forEach(item => {
+            const { normalised, mapping } = normaliseJobDetails(item);
+            normalisedArr.push(normalised);
+            mappingsArr.push(mapping);
+        });
+        return { normalised: normalisedArr, mappings: mappingsArr };
     }
-    // Otherwise, normalise the single object
+    // For a single object
     return normaliseJobDetails(data);
 };
 
@@ -81,7 +88,8 @@ const formatDateToDDMMYYYY = (isoStr) => {
 };
 
 export function normaliseJobDetails(raw) {
-    return {
+    const mapping = {};
+    const normalised = {
         job_id: raw.Id ?? null,
         job_number: raw.job_number ?? null,
         job_url: raw.Url ?? raw.job_url ?? null,
@@ -105,6 +113,47 @@ export function normaliseJobDetails(raw) {
         expired: raw.expired ?? null,
         updated_at: raw.updated_at ?? null
     };
+
+    // Build the mapping
+    mapping.job_id = raw.Id !== undefined ? "Id" : undefined;
+    mapping.job_number = raw.job_number !== undefined ? "job_number" : undefined;
+    mapping.job_url = raw.Url !== undefined ? "Url" : (raw.job_url !== undefined ? "job_url" : undefined);
+    mapping.title = raw.Title !== undefined ? "Title" : (raw.title !== undefined ? "title" : undefined);
+    mapping.comments = "comments";
+    mapping.requirements = "requirements";
+    mapping.follow_up = "follow_up";
+    mapping.highlight = "highlight";
+    mapping.applied = "applied";
+    mapping.contact = "contact";
+    mapping.application_comments = "application_comments";
+    mapping.application_date = raw.ApplicationDate !== undefined ? "ApplicationDate" : (raw.application_date !== undefined ? "application_date" : undefined);
+    mapping.job_date = raw.JobDate !== undefined ? "JobDate" : (raw.job_date !== undefined ? "job_date" : undefined);
+    mapping.unsuccessful = raw.Unsuccessful !== undefined ? "Unsuccessful" : (raw.unsuccessful !== undefined ? "unsuccessful" : undefined);
+    mapping.search_terms = raw.SearchTerms !== undefined ? "SearchTerms" : (raw.search_terms !== undefined ? "search_terms" : undefined);
+    mapping.salary = "salary";
+    mapping.position = "position";
+    mapping.advertiser = "advertiser";
+    mapping.location = "location";
+    mapping.work_type = "work_type";
+    mapping.expired = "expired";
+    mapping.updated_at = "updated_at";
+
+    console.log("normaliseJobDetails: normalised output:", normalised);
+    console.log("normaliseJobDetails: mapping output:", mapping);
+
+
+    return { normalised, mapping };
 }
 
-export { createLowercaseDBField, normaliseData, isDateField, convertDDMMYYYYToISO, formatDateToDDMMYYYY };
+function denormaliseJobDetails(normalised, mapping) {
+    const denormalised = {};
+    for (const [frontendKey, backendKey] of Object.entries(mapping)) {
+        if (backendKey !== undefined) {
+            denormalised[backendKey] = normalised[frontendKey];
+        }
+    }
+    return denormalised;
+}
+
+
+export { createLowercaseDBField, normaliseData, isDateField, convertDDMMYYYYToISO, formatDateToDDMMYYYY, denormaliseJobDetails };
