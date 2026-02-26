@@ -52,11 +52,26 @@ body {
   justify-content: space-between;
 }
 
+.job-search-data-old {
+  display: flex;
+  justify-content: space-between;
+}
+
 .table-container-1 {
   overflow-y: auto;
   max-height: 400px; /* Adjust this value as per your requirement */
   border: 1px solid #ccc;
 }
+
+
+/* .table-container-1 td:nth-child(2),
+.table-container-1 th:nth-child(2) {
+  max-width: 30ch;
+  width: 30ch;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+} */
 
 .table-container-2 {
   overflow-x: auto;         /* Enable horizontal scrolling */

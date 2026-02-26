@@ -138,10 +138,6 @@ export function normaliseJobDetails(raw) {
     mapping.expired = "expired";
     mapping.updated_at = "updated_at";
 
-    console.log("normaliseJobDetails: normalised output:", normalised);
-    console.log("normaliseJobDetails: mapping output:", mapping);
-
-
     return { normalised, mapping };
 }
 

@@ -26,6 +26,12 @@ const AppController = () => {
     const [selectedJobId, setSelectedJobId] = useState(null);
     const [currentJob, setCurrentJob] = useState(null); // singular per OpenAPI
     const [appliedJob, setAppliedJob] = useState(null); // singular per OpenAPI
+    const [jobDetailsMap, setJobDetailsMap] = useState({});
+    const [page, setPage] = useState(0);
+
+    const pageSize = 100;
+
+
 
     // Define handleDateChange within AppController.js
     const handleDateChange = (event) => {
@@ -42,9 +48,22 @@ const AppController = () => {
         }
     };
 
-    // When passing the handler to the child component or using it directly,
-    // you can directly assign handleDateChange to onEditDateChange prop or call it within an inline function
 
+    useEffect(() => {
+        // When jobs change, fetch details for each job
+        async function fetchAllDetails() {
+            if (!jobs || jobs.length === 0) return;
+            const detailsMap = {};
+            for (const job of jobs) {
+                const result = await fetchJobDetails(job.job_id);
+                if (result && result.details) {
+                    detailsMap[job.job_id] = result.details;
+                }
+            }
+            setJobDetailsMap(detailsMap);
+        }
+        fetchAllDetails();
+    }, [jobs]);
 
 
 
@@ -74,19 +93,23 @@ const AppController = () => {
         }
     };
 
-    const handleFilteredFetchData = useCallback(async (selectedTermsSet) => {
+    const handleFilteredFetchData = useCallback(async (selectedTermsSet, pageOverride = null) => {
         // OpenAPI expects filterTerms, currentJob, appliedJob (all singular)
         const toggledSelectedTerms = Array.from(selectedTermsSet);
         // console.log("handleFilteredFetchData: toggledSelectedTerms:", toggledSelectedTerms);
         // console.log("handleFilteredFetchData(currentJob, appliedJob):", currentJob, appliedJob);
+        const skip = (pageOverride !== null ? pageOverride : page) * pageSize;
+        const limit = pageSize;
         const data = await fetchFilteredValidJobsAndSearchTerms(
             toggledSelectedTerms,
             currentJob,
-            appliedJob
+            appliedJob,
+            skip,
+            limit
         );
         setJobs(data);
         setJobsFetched(true);  // Set to true once data is fetched
-    }, [currentJob, appliedJob]);
+    }, [currentJob, appliedJob, page, pageSize]);
 
 
     const handleToggleTerm = (term) => {
@@ -122,19 +145,23 @@ const AppController = () => {
         setSelectedJobId(jobId);
     };
 
-    const handleRowClick = (label) => {
-        // console.log("handleRowClick(", label, ")");
+    const handleRowClick = ({ jobId, fieldLabel }) => {
+        console.log("handleRowClick(", jobId, fieldLabel, ")");
         if (jobDetails) {
-            setEditingRow(label);
-            const dbField = createLowercaseDBField(label);
-            let fieldValue = jobDetails[dbField];
+            setEditingRow({ jobId, fieldLabel });
+            const details = jobDetailsMap[jobId] || {};
+            const dbField = createLowercaseDBField(fieldLabel);
+            let fieldValue = details[dbField];
             fieldValue = fieldValue ?? ''; // Simplified check for null or undefined
+            console.log("Setting editingRow:", { jobId, fieldLabel });
+            console.log("Setting editingValue:", fieldValue);
 
             // Check if the field is a date field
-            if (isDateField(label)) {
+            if (isDateField(fieldLabel)) {
                 // Convert the fieldValue to dd/MM/yyyy format before setting
                 const formattedDate = fieldValue ? formatDateToDDMMYYYY(fieldValue) : '';
                 setEditingDateValue(formattedDate);
+                console.log("Setting editingDateValue:", formattedDate);
             } else {
                 setEditingValue(fieldValue);
             }
@@ -227,12 +254,16 @@ const AppController = () => {
     // Log AppController props
     // console.log('AppController:props:', { props });
 
+    useEffect(() => {
+        console.log("editingRow changed:", editingRow);
+    }, [editingRow]);
 
     return (
         <>
             <App
                 jobs={jobs}
                 jobDetails={jobDetails}
+                jobDetailsMap={jobDetailsMap}
                 onFetchData={handleFetchData}
                 jobsFetched={jobsFetched}
                 onFilterClick={handleFilterClick}
@@ -254,6 +285,9 @@ const AppController = () => {
                 handleAppliedJobChange={handleAppliedJobChange}
                 handleDateChange={handleDateChange}
                 editingDateValue={editingDateValue}
+                page={page}
+                setPage={setPage}
+                
             />
             <SaveConfirmationDialog
                 isOpen={isModalOpen}

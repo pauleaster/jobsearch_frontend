@@ -1,14 +1,17 @@
 import React from 'react';
 import './App.css';
 import DataTable from './components/DataTable';
+import DataTableOld from './components/DataTableOld';
 import JobDetailsTable from './components/JobDetailsTable';
 import FetchButtons from './components/FetchButtons';
 import SearchTerms from './components/SearchTerms';
 import JobTypeControl from './components/JobTypeControl';
 
+
 const App = ({
     jobs,
     jobDetails,
+    jobDetailsMap,
     onFetchData,
     jobsFetched,
     onFilterClick,
@@ -29,7 +32,9 @@ const App = ({
     appliedJob,
     handleAppliedJobChange,
     handleDateChange,
-    editingDateValue
+    editingDateValue,
+    page,
+    setPage,
 
 }) => {
     return (
@@ -52,7 +57,9 @@ const App = ({
                     jobTypeValue={appliedJob}
                     setJobTypeValue={handleAppliedJobChange}
                 />
+
                 <div className="job-search-data">
+
                     {showSearchTerms && (
                         <div className="search-terms-container">
                             <SearchTerms
@@ -65,23 +72,24 @@ const App = ({
                     <div className='table-container-1'>
                         <DataTable
                             data={jobs}
+                            jobDetailsMap={jobDetailsMap}
                             onJobClick={onJobClick}
                             selectedJobId={selectedJobId}
+                            onRowClick={onRowClick}
+                            editingRow={editingRow}
+                            editingValue={editingValue}
+                            onEditValueChange={onEditValueChange}
+                            onUpdateRow={onUpdateRow}
+                            onEditDateChange={handleDateChange}
+                            editingDateValue={editingDateValue}
                         />
+                        <div className="pagination-controls" style={{ marginTop: '1rem', textAlign: 'center' }}>
+                            <button disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>
+                            <span style={{ margin: '0 1rem' }}>Page {page + 1}</span>
+                            <button onClick={() => setPage(page + 1)}>Next</button>
+                        </div>
                     </div>
                 </div>
-                {jobDetails && (
-                    <JobDetailsTable
-                        details={jobDetails}
-                        onRowClick={onRowClick}
-                        editingRow={editingRow}
-                        editingValue={editingValue}
-                        onEditValueChange={onEditValueChange}
-                        onUpdateRow={onUpdateRow}
-                        // onEditDateChange={() => console.log("Static test")}
-                        onEditDateChange={handleDateChange}
-                    />
-                )}
             </header>
         </div>
     );

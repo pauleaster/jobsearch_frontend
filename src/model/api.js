@@ -39,9 +39,12 @@ const fetchJson = async (url, options) => {
  * - GET  /api/validJobsAndSearchTerms
  * - POST /api/filteredJobsAndSearchTerms   body: { filterTerms: string[], currentJob?: bool|null, appliedJob?: bool|null }
  */
-const fetchValidJobsAndSearchTerms = async () => {
+const fetchValidJobsAndSearchTerms = async ({ skip = 0, limit = 100 } = {}) => {
   try {
-    const url = `${API_BASE_URL}/validJobsAndSearchTerms`;
+    const params = new URLSearchParams();
+    if (skip !== undefined && skip !== null) params.set("skip", String(skip));
+    if (limit !== undefined && limit !== null) params.set("limit", String(limit));
+    const url = `${API_BASE_URL}/validJobsAndSearchTerms?${params.toString()}`;
     return await fetchJson(url);
   } catch (error) {
     console.error("There was an error fetching valid jobs/search terms", error);
@@ -52,7 +55,9 @@ const fetchValidJobsAndSearchTerms = async () => {
 const fetchFilteredValidJobsAndSearchTerms = async (
   filterTerms = [""],
   currentJob = null,
-  appliedJob = null
+  appliedJob = null,
+  skip = 0,
+  limit = 100
 ) => {
   try {
     const url = `${API_BASE_URL}/filteredJobsAndSearchTerms`;
@@ -61,8 +66,10 @@ const fetchFilteredValidJobsAndSearchTerms = async (
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         filterTerms,
-        currentJob, // <-- singular per OpenAPI
-        appliedJob, // <-- singular per OpenAPI
+        currentJob,
+        appliedJob,
+        skip,
+        limit,
       }),
     });
   } catch (error) {
@@ -186,8 +193,6 @@ const fetchJobDetails = async (jobId) => {
     const { normalised, mapping } = normaliseData(data);
     const details = Array.isArray(normalised) ? normalised[0] : normalised; // If normalised is an array, use the first item (single job expected)
     const fieldMapping = Array.isArray(mapping) ? mapping[0] : mapping; // If mapping is an array, use the first item (single job expected)
-    console.log("fetchJobDetails: normalised details:", details);
-    console.log("fetchJobDetails: field mapping:", fieldMapping);
 
     // If normalised is an array, use the first item (single job expected)
     return {
