@@ -1,128 +1,290 @@
 import { normaliseData } from "../utils/transform";
 
+/**
+ * Expected env, per your note:
+ * REACT_APP_API_HTTP_BASE_URL=http://localhost:3001/api
+ * (and optionally HTTPS equivalent)
+ */
 const API_BASE_URL = ((useHttpsApi = process.env.REACT_APP_USE_HTTPS_API === "true") => {
-    if (useHttpsApi) {
-        const api_base_url = process.env.REACT_APP_API_HTTPS_BASE_URL;
-        // console.log("api: API_BASE_URL: api_base_url:", api_base_url);
-        return api_base_url;
-    } else {
-        const api_base_url = process.env.REACT_APP_API_HTTP_BASE_URL;
-        // console.log("api: API_BASE_URL: api_base_url:", api_base_url);
-        return api_base_url;
-    }
+  return useHttpsApi
+    ? process.env.REACT_APP_API_HTTPS_BASE_URL
+    : process.env.REACT_APP_API_HTTP_BASE_URL;
 })();
 
+/** Small helper: consistent error surfacing */
+const fetchJson = async (url, options) => {
+  const res = await fetch(url, options);
+  const text = await res.text();
 
+  // Try JSON; if not JSON, keep raw text for debugging
+  let payload;
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    payload = text;
+  }
 
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status} ${res.statusText} for ${url}`);
+    err.status = res.status;
+    err.payload = payload;
+    throw err;
+  }
+  return payload;
+};
 
+/**
+ * VALID JOB SEARCH TERMS
+ * - GET  /api/validJobsAndSearchTerms
+ * - POST /api/filteredJobsAndSearchTerms   body: { filterTerms: string[], currentJob?: bool|null, appliedJob?: bool|null }
+ */
+const fetchValidJobsAndSearchTerms = async () => {
+  try {
+    const url = `${API_BASE_URL}/validJobsAndSearchTerms`;
+    return await fetchJson(url);
+  } catch (error) {
+    console.error("There was an error fetching valid jobs/search terms", error);
+    return null;
+  }
+};
 
-const fetchData = async () => {
-    try {
-        // console.log("api: fetchData: API_BASE_URL:", API_BASE_URL);
-        const url = `${API_BASE_URL}/validJobsAndSearchTerms`;
-        // console.log("api: fetchData: url:", url);
+const fetchFilteredValidJobsAndSearchTerms = async (
+  filterTerms = [""],
+  currentJob = null,
+  appliedJob = null
+) => {
+  try {
+    const url = `${API_BASE_URL}/filteredJobsAndSearchTerms`;
+    return await fetchJson(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filterTerms,
+        currentJob, // <-- singular per OpenAPI
+        appliedJob, // <-- singular per OpenAPI
+      }),
+    });
+  } catch (error) {
+    console.error("There was an error fetching filtered valid jobs/search terms", error);
+    return null;
+  }
+};
 
-
-        const response = await fetch(url);
-        const data = await response.json();
-        // console.log("api: fetchData: data:", data);
-        return data;
-    } catch (error) {
-        console.error("There was an error fetching the data", error);
-        return null;
-    }
-}
-
-const fetchFilteredData = async (searchTerms = [''], currentJobs, appliedJobs) => {
-    try {
-        // console.log("api: fetchFilteredData: API_BASE_URL:", API_BASE_URL);
-        // console.log("api: fetchFilteredData: searchTerms:", searchTerms);
-        // console.log("api: fetchFilteredData: currentJobs:", currentJobs);
-        // console.log("api: fetchFilteredData: appliedJobs:", appliedJobs);
-
-        const url = `${API_BASE_URL}/filteredJobsAndSearchTerms`;
-        const jsonPayload = {
-            filterTerms: searchTerms,
-            currentJobs: currentJobs,
-            appliedJobs: appliedJobs
-        };
-        // console.log("api: fetchFilteredData: jsonPayload:", jsonPayload);
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(jsonPayload) // Send search terms in the request body
-        });
-        const data = await response.json();
-        // console.log("api: fetchFilteredData: data:", data);
-        return data;
-    } catch (error) {
-        console.error("There was an error fetching the data", error);
-        return null;
-    }
-}
-
+/**
+ * SEARCH TERMS
+ * - GET  /api/searchterms/
+ * - POST /api/searchterms/
+ * - GET  /api/searchterms/{term_id}
+ * - DELETE /api/searchterms/{term_id}
+ */
 const fetchSearchTerms = async () => {
-    try {
-        // console.log("api: fetchSearchTerms: API_BASE_URL:", API_BASE_URL);
-        const url = `${API_BASE_URL}/searchTerms`;
-        const response = await fetch(url);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error("There was an error fetching the data", error);
-        return null;
-    }
-}
+  try {
+    const url = `${API_BASE_URL}/searchterms/`;
+    return await fetchJson(url);
+  } catch (error) {
+    console.error("There was an error fetching the search terms", error);
+    return null;
+  }
+};
+
+const createSearchTerm = async (term) => {
+  try {
+    const url = `${API_BASE_URL}/searchterms/`;
+    // OpenAPI expects SearchTermSchema: { Term: string } (capital T)
+    return await fetchJson(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Term: term }),
+    });
+  } catch (error) {
+    console.error("There was an error creating the search term", error);
+    return null;
+  }
+};
+
+const fetchSearchTermById = async (termId) => {
+  try {
+    const url = `${API_BASE_URL}/searchterms/${termId}`;
+    return await fetchJson(url);
+  } catch (error) {
+    console.error("There was an error fetching the search term", error);
+    return null;
+  }
+};
+
+const deleteSearchTerm = async (termId) => {
+  try {
+    const url = `${API_BASE_URL}/searchterms/${termId}`;
+    // 204 No Content expected; fetchJson handles empty body -> null
+    return await fetchJson(url, { method: "DELETE" });
+  } catch (error) {
+    console.error("There was an error deleting the search term", error);
+    return null;
+  }
+};
+
+/**
+ * JOBS
+ * - GET    /api/jobs/           query: skip, limit, search
+ * - POST   /api/jobs/           body: JobSchema
+ * - GET    /api/jobs/count      query: search
+ * - GET    /api/jobs/{job_id}
+ * - PUT    /api/jobs/{job_id}   body: JobSchema
+ * - PATCH  /api/jobs/{job_id}   body: { field: string, value?: string|null }
+ * - DELETE /api/jobs/{job_id}
+ */
+const fetchJobs = async ({ skip = 0, limit = 100, search = null } = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (skip !== undefined && skip !== null) params.set("skip", String(skip));
+    if (limit !== undefined && limit !== null) params.set("limit", String(limit));
+    if (search !== undefined && search !== null && search !== "") params.set("search", String(search));
+
+    const url = `${API_BASE_URL}/jobs/?${params.toString()}`;
+    return await fetchJson(url);
+  } catch (error) {
+    console.error("There was an error fetching jobs", error);
+    return null;
+  }
+};
+
+const createJob = async (job) => {
+  try {
+    const url = `${API_BASE_URL}/jobs/`;
+    return await fetchJson(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(job),
+    });
+  } catch (error) {
+    console.error("There was an error creating the job", error);
+    return null;
+  }
+};
+
+const fetchJobsCount = async (search = null) => {
+  try {
+    const params = new URLSearchParams();
+    if (search !== undefined && search !== null && search !== "") params.set("search", String(search));
+
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    const url = `${API_BASE_URL}/jobs/count${suffix}`;
+    return await fetchJson(url);
+  } catch (error) {
+    console.error("There was an error fetching jobs count", error);
+    return null;
+  }
+};
 
 const fetchJobDetails = async (jobId) => {
-    try {
-        // console.log("api: fetchJobDetails: API_BASE_URL:", API_BASE_URL);
-        // console.log("api: fetchJobDetails: jobId:", jobId);
-        const url = `${API_BASE_URL}/job/${jobId}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        // console.log("api: fetchJobDetails: data:", data);
-        const normalisedData = normaliseData(data);
-        // console.log("api: fetchJobDetails: normalisedData:", normalisedData);
-        return normalisedData[0];
-    } catch (error) {
-        console.error("There was an error fetching the job details", error);
-        return null;
-    }
-}
+  try {
+    const url = `${API_BASE_URL}/jobs/${jobId}`;
+    const data = await fetchJson(url);
+
+    // Preserve your existing normalization behaviour
+    const normalisedData = normaliseData(data);
+    return Array.isArray(normalisedData) ? normalisedData[0] : normalisedData;
+  } catch (error) {
+    console.error("There was an error fetching the job details", error);
+    return null;
+  }
+};
+
+const updateJob = async (jobId, job) => {
+  try {
+    const url = `${API_BASE_URL}/jobs/${jobId}`;
+    return await fetchJson(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(job),
+    });
+  } catch (error) {
+    console.error("There was an error updating the job", error);
+    return null;
+  }
+};
 
 const isPatchEnabled = true;
 
 const patchJobDetails = async (jobId, field, value) => {
-    // console.log("api: patchJobDetails: API_BASE_URL:", API_BASE_URL);
-    // console.log("patchJobDetails(", jobId, field, value, ")");
+  if (!isPatchEnabled) return null;
 
-    if (isPatchEnabled) {
-        // console.log("Patching is enabled");
-        try {
-            const patchBody = JSON.stringify({ field, value });
-            // console.log("api: patchJobDetails: patchBody:\n", patchBody);
-            // console.log("\n");
-            const response = await fetch(`${API_BASE_URL}/job/${jobId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: patchBody
-            });
-            const data = await response.json();
-            // console.log("api: patchJobDetails: data:", data);
-            return data;
-        } catch (error) {
-            console.error("There was an error patching the job details", error);
-            return null;
-        }
-    } else {
-        // console.log("Patching is disabled");
-    }
+  try {
+    const url = `${API_BASE_URL}/jobs/${jobId}`;
+    return await fetchJson(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ field, value }),
+    });
+  } catch (error) {
+    console.error("There was an error patching the job details", error);
+    return null;
+  }
 };
 
+const deleteJob = async (jobId) => {
+  try {
+    const url = `${API_BASE_URL}/jobs/${jobId}`;
+    // 204 No Content expected
+    return await fetchJson(url, { method: "DELETE" });
+  } catch (error) {
+    console.error("There was an error deleting the job", error);
+    return null;
+  }
+};
 
-export { fetchData, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails };
+/**
+ * TEST
+ * - GET /api/test/db-connection
+ * - GET /api/test/health
+ */
+const testDbConnection = async () => {
+  try {
+    const url = `${API_BASE_URL}/test/db-connection`;
+    return await fetchJson(url);
+  } catch (error) {
+    console.error("There was an error testing DB connection", error);
+    return null;
+  }
+};
+
+const healthCheck = async () => {
+  try {
+    const url = `${API_BASE_URL}/test/health`;
+    return await fetchJson(url);
+  } catch (error) {
+    console.error("There was an error calling health check", error);
+    return null;
+  }
+};
+
+/**
+ * ROOT (only if you ever need it)
+ * - GET /
+ * Not included because your API_BASE_URL ends with /api, so root would be different anyway.
+ */
+
+export {
+  // Valid job + search term combos
+  fetchValidJobsAndSearchTerms,
+  fetchFilteredValidJobsAndSearchTerms,
+
+  // Search terms
+  fetchSearchTerms,
+  createSearchTerm,
+  fetchSearchTermById,
+  deleteSearchTerm,
+
+  // Jobs
+  fetchJobs,
+  createJob,
+  fetchJobsCount,
+  fetchJobDetails,
+  updateJob,
+  patchJobDetails,
+  deleteJob,
+
+  // Test
+  testDbConnection,
+  healthCheck,
+};

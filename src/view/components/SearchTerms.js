@@ -25,15 +25,15 @@ const SearchTerms = ({ searchTerms, selectedTerms = new Set(), onToggleTerm, isS
     // Mapping the search terms to table rows
     const searchTermRows = () => {
         // console.log("SearchTerms: searchTermRows()");
-        return searchTerms.map((term) => {
-            // console.log("SearchTerms: searchTermRows.map(", term, ")");
+        return searchTerms.map((termObj) => {
+            // console.log("SearchTerms: searchTermRows.map(", termObj, ")");
             return (
                 <tr 
-                    key={term} 
-                    className={selectedTerms.has(term) ? 'selected' : ''}
-                    onClick={() => onToggleTerm(term)}
+                    key={termObj.Id}
+                    className={selectedTerms.has(termObj.Term) ? 'selected' : ''}
+                    onClick={() => onToggleTerm(termObj.Term)}
                 >
-                    <td>{term}</td>
+                    <td>{termObj.Term}</td>
                 </tr>
             );
         });

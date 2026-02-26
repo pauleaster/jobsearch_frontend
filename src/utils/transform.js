@@ -14,10 +14,12 @@ const createLowercaseDBField = (webField) => {
 }
 
 const normaliseData = (data) => {
-    if (!Array.isArray(data)) {
-        return [data];
+    // If data is an array, normalise each item
+    if (Array.isArray(data)) {
+        return data.map(normaliseJobDetails);
     }
-    return data;
+    // Otherwise, normalise the single object
+    return normaliseJobDetails(data);
 };
 
 /**
@@ -78,5 +80,31 @@ const formatDateToDDMMYYYY = (isoStr) => {
     return newDate;
 };
 
+export function normaliseJobDetails(raw) {
+    return {
+        job_id: raw.Id ?? null,
+        job_number: raw.job_number ?? null,
+        job_url: raw.Url ?? raw.job_url ?? null,
+        title: raw.Title ?? raw.title ?? null,
+        comments: raw.comments ?? null,
+        requirements: raw.requirements ?? null,
+        follow_up: raw.follow_up ?? null,
+        highlight: raw.highlight ?? null,
+        applied: raw.applied ?? null,
+        contact: raw.contact ?? null,
+        application_comments: raw.application_comments ?? null,
+        application_date: raw.ApplicationDate ?? raw.application_date ?? null,
+        job_date: raw.JobDate ?? raw.job_date ?? null,
+        unsuccessful: raw.Unsuccessful ?? raw.unsuccessful ?? null,
+        search_terms: raw.SearchTerms ?? raw.search_terms ?? null,
+        salary: raw.salary ?? null,
+        position: raw.position ?? null,
+        advertiser: raw.advertiser ?? null,
+        location: raw.location ?? null,
+        work_type: raw.work_type ?? null,
+        expired: raw.expired ?? null,
+        updated_at: raw.updated_at ?? null
+    };
+}
 
 export { createLowercaseDBField, normaliseData, isDateField, convertDDMMYYYYToISO, formatDateToDDMMYYYY };

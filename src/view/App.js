@@ -6,78 +6,81 @@ import FetchButtons from './components/FetchButtons';
 import SearchTerms from './components/SearchTerms';
 import JobTypeControl from './components/JobTypeControl';
 
-const App = ({ 
-    jobs, 
-    jobDetails, 
-    onFetchData, 
-    jobsFetched, 
+const App = ({
+    jobs,
+    jobDetails,
+    onFetchData,
+    jobsFetched,
     onFilterClick,
     searchTerms,
     showSearchTerms,
     selectedTerms,
     handleToggleTerm,
-    onJobClick, 
-    onRowClick, 
-    editingRow, 
-    editingValue, 
-    onEditValueChange, 
+    onJobClick,
+    handleBackgroundClick,
+    onRowClick,
+    editingRow,
+    editingValue,
+    onEditValueChange,
     onUpdateRow,
     selectedJobId,
-    currentJobs,
-    handleCurrentJobsChange,
-    appliedJobs,
-    handleAppliedJobsChange,
+    currentJob,
+    handleCurrentJobChange,
+    appliedJob,
+    handleAppliedJobChange,
     handleDateChange,
     editingDateValue
 
 }) => {
     return (
         <div className="App">
-            <header className="App-header">
-                <FetchButtons 
-                    onFetchData={onFetchData} 
+            <header className="App-header"
+                onClick={handleBackgroundClick}
+            >
+                <FetchButtons
+                    onFetchData={onFetchData}
                     jobsFetched={jobsFetched}
-                    onFilterClick={onFilterClick} 
+                    onFilterClick={onFilterClick}
                 />
-                 <JobTypeControl
+                <JobTypeControl
                     jobTypeLabel="Current Jobs"
-                    jobTypeValue={currentJobs}
-                    setJobTypeValue={handleCurrentJobsChange}
+                    jobTypeValue={currentJob}
+                    setJobTypeValue={handleCurrentJobChange}
                 />
                 <JobTypeControl
                     jobTypeLabel="Applied Jobs"
-                    jobTypeValue={appliedJobs}
-                    setJobTypeValue={handleAppliedJobsChange}
+                    jobTypeValue={appliedJob}
+                    setJobTypeValue={handleAppliedJobChange}
                 />
                 <div className="app-content">
                     {showSearchTerms && (
                         <div className="search-terms-container">
-                            <SearchTerms 
-                                searchTerms={searchTerms} 
-                                selectedTerms={selectedTerms} 
+                            <SearchTerms
+                                searchTerms={searchTerms}
+                                selectedTerms={selectedTerms}
                                 onToggleTerm={handleToggleTerm}
-                                isShown={showSearchTerms}  />
+                                isShown={showSearchTerms} />
                         </div>
                     )}
                     <div className='table-container'>
-                        <DataTable 
-                            data={jobs} 
+                        <DataTable
+                            data={jobs}
                             onJobClick={onJobClick}
                             selectedJobId={selectedJobId}
                         />
                     </div>
                 </div>
                 {jobDetails && (
-                    <JobDetailsTable 
-                        details={jobDetails} 
-                        onRowClick={onRowClick} 
+                    <JobDetailsTable
+                        details={jobDetails}
+                        onRowClick={onRowClick}
                         editingRow={editingRow}
                         editingValue={editingValue}
                         onEditValueChange={onEditValueChange}
                         onUpdateRow={onUpdateRow}
                         // onEditDateChange={() => console.log("Static test")}
                         onEditDateChange={handleDateChange}
-                        />
+                    />
                 )}
             </header>
         </div>

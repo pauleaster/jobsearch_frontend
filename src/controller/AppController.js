@@ -1,6 +1,12 @@
 // src>controller>AppController.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchData, fetchFilteredData, fetchSearchTerms, fetchJobDetails, patchJobDetails } from '../model/api';
+import {
+    fetchValidJobsAndSearchTerms,
+    fetchFilteredValidJobsAndSearchTerms,
+    fetchSearchTerms,
+    fetchJobDetails,
+    patchJobDetails
+} from '../model/api';
 import App from '../view/App';
 import { createLowercaseDBField, isDateField, formatDateToDDMMYYYY, convertDDMMYYYYToISO } from '../utils/transform';
 import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
@@ -17,9 +23,8 @@ const AppController = () => {
     const [showSearchTerms, setShowSearchTerms] = useState(false);
     const [selectedTerms, setSelectedTerms] = useState(new Set());
     const [selectedJobId, setSelectedJobId] = useState(null);
-    const [currentJobs, setCurrentJobs] = useState(null); // Can be null, true, or false
-    const [appliedJobs, setAppliedJobs] = useState(null); // Can be null, true, or false
-
+    const [currentJob, setCurrentJob] = useState(null); // singular per OpenAPI
+    const [appliedJob, setAppliedJob] = useState(null); // singular per OpenAPI
 
     // Define handleDateChange within AppController.js
     const handleDateChange = (event) => {
@@ -31,8 +36,7 @@ const AppController = () => {
             // console.log("handleDateChange: dateInISO:", dateInISO);
             // console.log("handleDateChange: setEditingDateValue(", dateInISO, ")");
             setEditingDateValue(dateInISO);
-        }
-        catch (error) {
+        } catch (error) {
             console.error("handleDateChange: error:", error);
         }
     };
@@ -51,30 +55,37 @@ const AppController = () => {
         // there's no need to duplicate that logic here.
     };
 
-
-
     const handleFilterClick = async () => {
         const fetchedSearchTerms = await fetchSearchTerms();
         if (fetchedSearchTerms) {
             setSearchTerms(fetchedSearchTerms);
-            setSelectedTerms(new Set(fetchedSearchTerms)); // Set all fetched terms as selected
+            console.log("handleFilterClick: fetchedSearchTerms:", fetchedSearchTerms);
+            // Store only the Term values in selectedTerms set
+            const seachTermsSet = new Set(fetchedSearchTerms.map(termObj => termObj.Term));
+            console.log("handleFilterClick: seachTermsSet:", seachTermsSet);
+            setSelectedTerms(seachTermsSet);
+            console.log("handleFilterClick: selectedTerms after setSelectedTerms:", selectedTerms);
             setShowSearchTerms(true); // Show the search terms table
-            // console.log("handleFilterClick: handleToggleTerm type:", typeof handleToggleTerm); 
+            console.log("handleFilterClick: showSearchTerms set to true");
         }
         else {
-            // console.log("handleFilterClick: fetchSearchTerms returned null");
+            console.log("handleFilterClick: fetchSearchTerms returned null");
         }
-
     };
 
     const handleFilteredFetchData = useCallback(async (selectedTermsSet) => {
+        // OpenAPI expects filterTerms, currentJob, appliedJob (all singular)
         const toggledSelectedTerms = Array.from(selectedTermsSet);
         // console.log("handleFilteredFetchData: toggledSelectedTerms:", toggledSelectedTerms);
-        // console.log("handleFilteredFetchData(currentJobs, appliedJobs):", currentJobs, appliedJobs);
-        const data = await fetchFilteredData(toggledSelectedTerms, currentJobs, appliedJobs);
+        // console.log("handleFilteredFetchData(currentJob, appliedJob):", currentJob, appliedJob);
+        const data = await fetchFilteredValidJobsAndSearchTerms(
+            toggledSelectedTerms,
+            currentJob,
+            appliedJob
+        );
         setJobs(data);
         setJobsFetched(true);  // Set to true once data is fetched
-    }, [currentJobs, appliedJobs]);
+    }, [currentJob, appliedJob]);
 
 
     const handleToggleTerm = (term) => {
@@ -93,7 +104,6 @@ const AppController = () => {
         setSelectedTerms(newSelectedTerms); // update state
         // launch handleFetchData with the selected terms, converting to an array first
         handleFilteredFetchData(newSelectedTerms);
-
     };
 
     useEffect(() => {
@@ -131,6 +141,26 @@ const AppController = () => {
         }
     };
 
+    useEffect(() => {
+        // Reset editing state when jobDetails changes (new job selected)
+        setEditingRow(null);
+        setEditingValue('');
+        setEditingDateValue('');
+    }, [jobDetails]);
+
+    const handleBackgroundClick = (e) => {
+        // Only reset if the click is on the background (App or App-header)
+        if (
+            e.target.className === "App" ||
+            e.target.className === "App-header"
+        ) {
+            setEditingRow(null);
+            setEditingValue('');
+            setEditingDateValue('');
+        }
+    };
+
+
     const handleUpdateRow = async () => {
         // console.log("handleUpdateRow()");
         if (editingRow && jobDetails) {
@@ -150,25 +180,21 @@ const AppController = () => {
             await patchJobDetails(jobDetails.job_id, editingRow, valueToSend);
             setEditingRow(null);
             setEditingValue('');
-            setEditingDateValue(''); // Reset editing date value as well
-            // Optionally, refresh job details after updating
-            handleJobClick(jobDetails.job_id);
+            setEditingDateValue('');
+            handleJobClick(jobDetails.Id);
         }
     };
 
-
     const handleSaveWithConfirmation = async () => {
         setIsModalOpen(true);
-    }
+    };
 
     const handleConfirmSave = async () => {
-        await handleUpdateRow();  // only call the original update function if the user confirms
-
-        // Fetch latest job details
-        const updatedJobDetails = await fetchJobDetails(jobDetails.job_id,);  // Assuming you have the current job's ID stored in a state or variable
-        setJobDetails(updatedJobDetails);  // Update the jobDetails state with the latest details
-        setIsModalOpen(false);  // Close the modal
-    }
+        await handleUpdateRow();
+        const updatedJobDetails = await fetchJobDetails(jobDetails.Id);
+        setJobDetails(updatedJobDetails);
+        setIsModalOpen(false);
+    };
 
     const handleCloseModal = () => {
         if (jobDetails && editingRow) {
@@ -189,24 +215,16 @@ const AppController = () => {
         setIsModalOpen(false);
     };
 
-
     useEffect(() => {
-        // console.log("handleCurrentJobsChange: Current Jobs change:", currentJobs);
-        // console.log("handleAppliedJobsChange: Applied Jobs change:", appliedJobs);
-        // console.log("handleFilteredFetchData(selectedTerms):", selectedTerms);
         handleFilteredFetchData(selectedTerms);
-    }, [currentJobs, appliedJobs, selectedTerms, handleFilteredFetchData])
+    }, [currentJob, appliedJob, selectedTerms, handleFilteredFetchData]);
 
-
-    const handleCurrentJobsChange = (newValue) => {
-        // console.log("handleCurrentJobsChange: Current Jobs change:", newValue);
-        setCurrentJobs(newValue);
+    const handleCurrentJobChange = (newValue) => {
+        setCurrentJob(newValue);
     };
 
-
-    const handleAppliedJobsChange = (newValue) => {
-        // console.log("handleAppliedJobsChange: Applied Jobs change:", newValue);
-        setAppliedJobs(newValue);
+    const handleAppliedJobChange = (newValue) => {
+        setAppliedJob(newValue);
     };
 
 
@@ -228,29 +246,27 @@ const AppController = () => {
                 selectedTerms={selectedTerms}
                 handleToggleTerm={handleToggleTerm}
                 onJobClick={handleJobClick}
+                handleBackgroundClick={handleBackgroundClick}
                 onRowClick={handleRowClick}
                 editingRow={editingRow}
                 editingValue={editingValue}
                 onEditValueChange={setEditingValue}
                 onUpdateRow={handleSaveWithConfirmation}
                 selectedJobId={selectedJobId}
-                currentJobs={currentJobs}
-                handleCurrentJobsChange={handleCurrentJobsChange}
-                appliedJobs={appliedJobs}
-                handleAppliedJobsChange={handleAppliedJobsChange}
+                currentJob={currentJob}
+                handleCurrentJobChange={handleCurrentJobChange}
+                appliedJob={appliedJob}
+                handleAppliedJobChange={handleAppliedJobChange}
                 handleDateChange={handleDateChange}
                 editingDateValue={editingDateValue}
             />
-
-
             <SaveConfirmationDialog
                 isOpen={isModalOpen}
                 onConfirm={handleConfirmSave}
                 onClose={handleCloseModal}
             />
         </>
-
     );
-}
+};
 
 export default AppController;
