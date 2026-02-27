@@ -1,8 +1,6 @@
 import React from 'react';
 import './App.css';
 import DataTable from './components/DataTable';
-import DataTableOld from './components/DataTableOld';
-import JobDetailsTable from './components/JobDetailsTable';
 import FetchButtons from './components/FetchButtons';
 import SearchTerms from './components/SearchTerms';
 import JobTypeControl from './components/JobTypeControl';
@@ -10,7 +8,6 @@ import JobTypeControl from './components/JobTypeControl';
 
 const App = ({
     jobs,
-    jobDetails,
     jobDetailsMap,
     onFetchData,
     jobsFetched,

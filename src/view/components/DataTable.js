@@ -29,12 +29,7 @@ const JOB_PREVIEW_WINDOW_NAME = "jobPreview";
 
 function openJobPreview(url) {
   if (!url) return;
-
-  // Reuse the same window/tab by name
   const win = window.open(url, JOB_PREVIEW_WINDOW_NAME);
-
-  // If blocked, do nothing here (let the user use the link),
-  // or optionally show a toast / set state.
   if (win) win.focus();
 }
 
@@ -73,23 +68,12 @@ const DataTable = ({
           const details = jobDetailsMap[job.job_id] || {};
 
           const renderCell = (field) => {
-            console.log("renderCell(",
-              field.label,
-              field.type,
-              job.job_id,
-              editingRow,
-              editingRow ? editingRow.jobId : null,
-              editingRow ? editingRow.fieldLabel : null,
-              job.job_id, ")");
             const fieldName = createLowercaseDBField(field.label);
             const fieldValue = details[fieldName];
             const isEditing =
               editingRow &&
               editingRow.jobId === job.job_id &&
               editingRow.fieldLabel === field.label;
-            if (isEditing) {
-              console.log("Rendering edit mode for:", job.job_id, field.label, "Value:", fieldValue);
-            }
 
             switch (field.type) {
               case 'boolean-editable':
@@ -191,7 +175,11 @@ const DataTable = ({
               onClick={() => onJobClick(job.job_id, job.job_number)}
             >
               <td>{job.job_number}</td>
-              <td>{job.matching_terms}</td>
+              <td>
+                {Array.isArray(job.search_terms)
+                  ? job.search_terms.join(', ')
+                  : (job.matching_terms || '-')}
+              </td>
               {FIELDS.map((field) => (
                 <td
                   key={field.label}

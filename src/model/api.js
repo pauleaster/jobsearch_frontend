@@ -281,6 +281,32 @@ const healthCheck = async () => {
  * Not included because your API_BASE_URL ends with /api, so root would be different anyway.
  */
 
+const fetchCombinedJobsAndSearchTerms = async ({
+  filterTerms = [],
+  currentJob = null,
+  appliedJob = null,
+  skip = 0,
+  limit = 100
+} = {}) => {
+  try {
+    const url = `${API_BASE_URL}/filteredCombinedJobsAndSearchTerms`;
+    return await fetchJson(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filterTerms,
+        currentJob,
+        appliedJob,
+        skip,
+        limit
+      }),
+    });
+  } catch (error) {
+    console.error("There was an error fetching combined jobs and search terms", error);
+    return null;
+  }
+};
+
 export {
   // Valid job + search term combos
   fetchValidJobsAndSearchTerms,
@@ -304,4 +330,7 @@ export {
   // Test
   testDbConnection,
   healthCheck,
+
+  // Combined jobs and search terms
+  fetchCombinedJobsAndSearchTerms,
 };

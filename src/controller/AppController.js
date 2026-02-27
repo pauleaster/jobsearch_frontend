@@ -1,8 +1,7 @@
 // src>controller>AppController.js
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-    fetchValidJobsAndSearchTerms,
-    fetchFilteredValidJobsAndSearchTerms,
+    fetchCombinedJobsAndSearchTerms,
     fetchSearchTerms,
     fetchJobDetails,
     patchJobDetails
@@ -13,7 +12,6 @@ import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
 
 const AppController = () => {
     const [jobs, setJobs] = useState([]);
-    const [jobDetails, setJobDetails] = useState(null);
     const [jobFieldMapping, setJobFieldMapping] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
     const [editingValue, setEditingValue] = useState('');
@@ -49,24 +47,6 @@ const AppController = () => {
     };
 
 
-    useEffect(() => {
-        // When jobs change, fetch details for each job
-        async function fetchAllDetails() {
-            if (!jobs || jobs.length === 0) return;
-            const detailsMap = {};
-            for (const job of jobs) {
-                const result = await fetchJobDetails(job.job_id);
-                if (result && result.details) {
-                    detailsMap[job.job_id] = result.details;
-                }
-            }
-            setJobDetailsMap(detailsMap);
-        }
-        fetchAllDetails();
-    }, [jobs]);
-
-
-
     const handleFetchData = async () => {
         // Call handleFilteredFetchData with an empty Set to signify no specific filter criteria
         setSelectedTerms(new Set()); // initialise to an empty set and save state
@@ -93,23 +73,48 @@ const AppController = () => {
         }
     };
 
+    function buildJobDetailsAndFieldMapping(jobs) {
+        const detailsMap = {};
+        const fieldMappingMap = {};
+
+        for (const job of jobs) {
+            const details = {};
+            const mapping = {};
+
+            for (const key of Object.keys(job)) {
+                const frontendKey = createLowercaseDBField(key); // e.g., "Job Number" -> "job_number"
+                details[frontendKey] = job[key];
+                mapping[frontendKey] = key; // for reverse lookup (frontend -> backend)
+            }
+
+            detailsMap[job.job_id] = details;
+            fieldMappingMap[job.job_id] = mapping;
+        }
+
+        return { detailsMap, fieldMappingMap };
+    }
+
     const handleFilteredFetchData = useCallback(async (selectedTermsSet, pageOverride = null) => {
         // OpenAPI expects filterTerms, currentJob, appliedJob (all singular)
         const toggledSelectedTerms = Array.from(selectedTermsSet);
         // console.log("handleFilteredFetchData: toggledSelectedTerms:", toggledSelectedTerms);
         // console.log("handleFilteredFetchData(currentJob, appliedJob):", currentJob, appliedJob);
         const skip = (pageOverride !== null ? pageOverride : page) * pageSize;
-        const limit = pageSize;
-        const data = await fetchFilteredValidJobsAndSearchTerms(
+        const data = await fetchCombinedJobsAndSearchTerms(
             toggledSelectedTerms,
             currentJob,
             appliedJob,
             skip,
-            limit
+            pageSize
         );
         setJobs(data);
+
+        const { detailsMap, fieldMappingMap } = buildJobDetailsAndFieldMapping(data);
+        setJobDetailsMap(detailsMap);
+        setJobFieldMapping(fieldMappingMap);
+
         setJobsFetched(true);  // Set to true once data is fetched
-    }, [currentJob, appliedJob, page, pageSize]);
+    }, [currentJob, appliedJob, page]);
 
 
     const handleToggleTerm = (term) => {
@@ -147,33 +152,25 @@ const AppController = () => {
 
     const handleRowClick = ({ jobId, fieldLabel }) => {
         console.log("handleRowClick(", jobId, fieldLabel, ")");
-        if (jobDetails) {
-            setEditingRow({ jobId, fieldLabel });
-            const details = jobDetailsMap[jobId] || {};
-            const dbField = createLowercaseDBField(fieldLabel);
-            let fieldValue = details[dbField];
-            fieldValue = fieldValue ?? ''; // Simplified check for null or undefined
-            console.log("Setting editingRow:", { jobId, fieldLabel });
-            console.log("Setting editingValue:", fieldValue);
+        setEditingRow({ jobId, fieldLabel });
+        const details = jobDetailsMap[jobId] || {};
+        const dbField = createLowercaseDBField(fieldLabel);
+        let fieldValue = details[dbField];
+        fieldValue = fieldValue ?? ''; // Simplified check for null or undefined
+        console.log("Setting editingRow:", { jobId, fieldLabel });
+        console.log("Setting editingValue:", fieldValue);
 
-            // Check if the field is a date field
-            if (isDateField(fieldLabel)) {
-                // Convert the fieldValue to dd/MM/yyyy format before setting
-                const formattedDate = fieldValue ? formatDateToDDMMYYYY(fieldValue) : '';
-                setEditingDateValue(formattedDate);
-                console.log("Setting editingDateValue:", formattedDate);
-            } else {
-                setEditingValue(fieldValue);
-            }
+        // Check if the field is a date field
+        if (isDateField(fieldLabel)) {
+            // Convert the fieldValue to dd/MM/yyyy format before setting
+            const formattedDate = fieldValue ? formatDateToDDMMYYYY(fieldValue) : '';
+            setEditingDateValue(formattedDate);
+            console.log("Setting editingDateValue:", formattedDate);
+        } else {
+            setEditingValue(fieldValue);
         }
     };
 
-    useEffect(() => {
-        // Reset editing state when jobDetails changes (new job selected)
-        setEditingRow(null);
-        setEditingValue('');
-        setEditingDateValue('');
-    }, [jobDetails]);
 
     const handleBackgroundClick = (e) => {
         // Only reset if the click is on the background (App or App-header)
@@ -187,55 +184,11 @@ const AppController = () => {
         }
     };
 
-
-    const handleUpdateRow = async () => {
-        if (editingRow && jobDetails && jobFieldMapping) {
-            let valueToSend;
-            if (isDateField(editingRow)) {
-                valueToSend = editingDateValue;
-            } else {
-                valueToSend = editingValue;
-            }
-            // Use the mapping to get the backend field name
-            const backendField = jobFieldMapping[createLowercaseDBField(editingRow)] || editingRow;
-            await patchJobDetails(jobDetails.job_id, backendField, valueToSend);
-            setEditingRow(null);
-            setEditingValue('');
-            setEditingDateValue('');
-            handleJobClick(jobDetails.job_id);
-        }
-    };
-
     const handleSaveWithConfirmation = async () => {
         setIsModalOpen(true);
     };
 
-    const handleConfirmSave = async () => {
-        await handleUpdateRow();
-        const { details, mapping } = await fetchJobDetails(jobDetails.job_id);
-        setJobDetails(details);
-        setJobFieldMapping(mapping);
-        setIsModalOpen(false);
-    };
 
-    const handleCloseModal = () => {
-        if (jobDetails && editingRow) {
-            // Retrieve the original value for the editing field
-            const dbField = createLowercaseDBField(editingRow);
-            const originalValue = jobDetails[dbField];
-
-            if (isDateField(editingRow)) {
-                // If it's a date field, format the original value and update editingDateValue
-                const formattedDate = originalValue ? formatDateToDDMMYYYY(originalValue) : '';
-                setEditingDateValue(formattedDate);
-            } else {
-                // For non-date fields, update editingValue as before
-                setEditingValue(originalValue ?? '');
-            }
-        }
-        // Close the modal
-        setIsModalOpen(false);
-    };
 
     useEffect(() => {
         handleFilteredFetchData(selectedTerms);
@@ -262,7 +215,6 @@ const AppController = () => {
         <>
             <App
                 jobs={jobs}
-                jobDetails={jobDetails}
                 jobDetailsMap={jobDetailsMap}
                 onFetchData={handleFetchData}
                 jobsFetched={jobsFetched}
@@ -287,7 +239,7 @@ const AppController = () => {
                 editingDateValue={editingDateValue}
                 page={page}
                 setPage={setPage}
-                
+
             />
             <SaveConfirmationDialog
                 isOpen={isModalOpen}
