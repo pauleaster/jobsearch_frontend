@@ -285,25 +285,61 @@ const fetchCombinedJobsAndSearchTerms = async ({
   filterTerms = [],
   currentJob = null,
   appliedJob = null,
+  remoteJob = null,
   skip = 0,
   limit = 100
 } = {}) => {
   try {
     const url = `${API_BASE_URL}/filteredCombinedJobsAndSearchTerms`;
-    return await fetchJson(url, {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         filterTerms,
         currentJob,
         appliedJob,
+        remoteJob,
         skip,
         limit
       }),
     });
+
+    // Log all readable response headers
+console.log("fetchCombinedJobsAndSearchTerms: response headers:");
+for (const [key, value] of res.headers.entries()) {
+  console.log(`  ${key}: ${value}`);
+}
+
+// Optional direct checks
+console.log("X-Total-Count:", res.headers.get("X-Total-Count"));
+console.log("X-Page-Size:", res.headers.get("X-Page-Size"));
+
+    const text = await res.text();
+    let rows;
+    try {
+      rows = text ? JSON.parse(text) : [];
+    } catch {
+      rows = [];
+    }
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${res.statusText} for ${url}`);
+    }
+
+    const totalCountHeader =
+      res.headers.get("X-Total-Count") ?? res.headers.get("x-total-count");
+    const totalCount = Number(totalCountHeader ?? 0);
+    console.log(`fetchCombinedJobsAndSearchTerms: totalCountHeader = "${totalCountHeader}", totalCount = ${totalCount}`);
+
+    const pageSizeHeader =
+      res.headers.get("X-Page-Size") ?? res.headers.get("x-page-size");
+    const pageSize = Number(pageSizeHeader ?? 0);
+    console.log(`fetchCombinedJobsAndSearchTerms: pageSizeHeader = "${pageSizeHeader}", pageSize = ${pageSize}`);
+
+    return { rows, totalCount, pageSize };
   } catch (error) {
     console.error("There was an error fetching combined jobs and search terms", error);
-    return null;
+    return { rows: [], totalCount: 0, pageSize: 0 };
   }
 };
 

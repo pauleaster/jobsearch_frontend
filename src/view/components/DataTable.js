@@ -1,5 +1,6 @@
 import React from 'react';
 import { formatDateToDDMMYYYY, createLowercaseDBField } from '../../utils/transform';
+import HeaderCell from './HeaderCell';
 
 const FIELDS = [
   { label: 'Job Id', type: 'uneditable' },
@@ -50,16 +51,30 @@ const DataTable = ({
   onUpdateRow,
   onEditDateChange,
   selectedJobId,
-  onJobClick
+  handleHeaderOnClick,
+  activeSort,
 }) => (
   <div className="table-container-1">
     <table>
       <thead>
         <tr>
-          <th>Job Number</th>
-          <th>Matching Terms</th>
+          <HeaderCell
+            name="Job Number"
+            visualState={activeSort.column === "Job Number" ? activeSort.direction : "none"}
+            onClick={() => handleHeaderOnClick("Job Number")}
+          />
+          <HeaderCell 
+            name="Matching Terms"
+            visualState={activeSort.column === "Matching Terms" ? activeSort.direction : "none"}
+            onClick={() => handleHeaderOnClick("Matching Terms")}
+          />
           {FIELDS.map((field) => (
-            <th key={field.label}>{field.label}</th>
+            <HeaderCell 
+              key={field.label}
+              name={field.label}
+              visualState={activeSort.column   === field.label ? activeSort.direction : "none"}
+              onClick={() => handleHeaderOnClick(field.label)}
+            />
           ))}
         </tr>
       </thead>
@@ -172,7 +187,6 @@ const DataTable = ({
             <tr
               key={job.job_id}
               className={job.job_id === selectedJobId ? 'selected-row' : ''}
-              onClick={() => onJobClick(job.job_id, job.job_number)}
             >
               <td>{job.job_number}</td>
               <td>

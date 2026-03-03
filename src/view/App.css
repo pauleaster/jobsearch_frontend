@@ -1,14 +1,14 @@
-body {
-  background-color: #282c34; /* Or whatever color you're using */
+html, body, #root {
+  height: 100%;
+  margin: 0;
 }
 
-.selected-row{
-  background-color: #4d515b;
-
+body {
+  background-color: #282c34;
 }
 
 .App {
-  text-align: left;
+  height: 100%;
 }
 
 .App-logo {
@@ -22,14 +22,30 @@ body {
   }
 }
 
-.App-header {
+.search-terms-datatable-pagination-container {
+  flex: 1 1 auto;
+  min-height: 0;      /* critical for internal scrolling */
   width: 100%;
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: left; /* changed from center to left */
-  justify-content: flex-start; /* changed from center to flex-start */
+  overflow: hidden;
+}
+
+
+.top-controls,
+.search-terms-container,
+.pagination-controls {
+  flex-shrink: 0;            /* keep natural height */
+}
+
+.App-header {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;   /* fix: left -> flex-start */
+  justify-content: flex-start;
+  overflow: hidden;          /* key for internal scrolling */
   font-size: calc(10px + 2vmin);
   color: white;
 }
@@ -47,6 +63,21 @@ body {
   }
 }
 
+.top-controls {
+    display: flex;
+    gap: 1rem; /* space between the child divs */
+    align-items: center;
+}
+
+
+.job-type-control {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
 .job-search-data {
   display: flex;
   justify-content: space-between;
@@ -58,11 +89,11 @@ body {
 }
 
 .table-container-1 {
+  flex: 1 1 auto;
+  min-height: 0;             /* required for proper flex overflow */
   overflow-y: auto;
-  max-height: 400px; /* Adjust this value as per your requirement */
   border: 1px solid #ccc;
 }
-
 
 /* .table-container-1 td:nth-child(2),
 .table-container-1 th:nth-child(2) {
@@ -89,8 +120,8 @@ body {
 }
 
 .selected {
-  background-color: #d3f8d3; /* Light green background, or choose your preferred color */
-  color: #034503; /* Darker text color for contrast, optional */
+  background-color: #353a42; /* Light green background, or choose your preferred color */
+  color: #FFFFFF; /* Darker text color for contrast, optional */
   cursor: pointer; /* Change cursor to indicate row is clickable, optional */
 }
 
@@ -112,6 +143,58 @@ th {
   top: 0;
   z-index: 1; /* This ensures the header is above the table rows */
 }
+
+.header-cell-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.header-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.chevron-stack {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 0.6;
+  font-size: 1.1rem;
+  margin-left: 0.35rem;
+}
+
+.chevron {
+  display: block;
+  margin: -1px 0;
+  padding: 0;
+  transition: opacity 120ms ease, color 120ms ease;
+  color: #333;
+}
+
+/* default (none selected): both visible but soft */
+.sort-state-none .chevron.up,
+.sort-state-none .chevron.down {
+  opacity: 1;
+}
+
+/* up selected: up active, down "disabled" */
+.sort-state-up .chevron.up {
+  opacity: 1;
+}
+.sort-state-up .chevron.down {
+  opacity: 0.3;          /* disabled look */
+}
+
+/* down selected: down active, up "disabled" */
+.sort-state-down .chevron.up {
+  opacity: 0.3;          /* disabled look */
+}
+.sort-state-down .chevron.down {
+  opacity: 1;
+}
+
 .ReactModal__Overlay {
   position: fixed;
   top: 0;
@@ -242,4 +325,15 @@ div input[type="radio"] + label::before {
 }
 fieldset legend {
   font-size: 16px;
+}
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  font-size: 18px;
+}
+.total-count {
+  font-size: 12px;
+  color: #999;
 }

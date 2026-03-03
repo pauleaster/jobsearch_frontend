@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     fetchCombinedJobsAndSearchTerms,
     fetchSearchTerms,
-    fetchJobDetails,
     patchJobDetails
 } from '../model/api';
 import App from '../view/App';
@@ -21,15 +20,15 @@ const AppController = () => {
     const [searchTerms, setSearchTerms] = useState([]);
     const [showSearchTerms, setShowSearchTerms] = useState(false);
     const [selectedTerms, setSelectedTerms] = useState(new Set());
-    const [selectedJobId, setSelectedJobId] = useState(null);
     const [currentJob, setCurrentJob] = useState(null); // singular per OpenAPI
     const [appliedJob, setAppliedJob] = useState(null); // singular per OpenAPI
+    const [remoteJob, setRemoteJob] = useState(null);
     const [jobDetailsMap, setJobDetailsMap] = useState({});
     const [page, setPage] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);
+    const [effectivePageSize, setEffectivePageSize] = useState(100);
 
     const pageSize = 100;
-
-
 
     // Define handleDateChange within AppController.js
     const handleDateChange = (event) => {
@@ -56,19 +55,17 @@ const AppController = () => {
     };
 
     const handleFilterClick = async () => {
+        if (showSearchTerms) {
+            setShowSearchTerms(false);
+            return;
+        }
         const fetchedSearchTerms = await fetchSearchTerms();
         if (fetchedSearchTerms) {
             setSearchTerms(fetchedSearchTerms);
-            console.log("handleFilterClick: fetchedSearchTerms:", fetchedSearchTerms);
-            // Store only the Term values in selectedTerms set
             const seachTermsSet = new Set(fetchedSearchTerms.map(termObj => termObj.Term));
-            console.log("handleFilterClick: seachTermsSet:", seachTermsSet);
             setSelectedTerms(seachTermsSet);
-            console.log("handleFilterClick: selectedTerms after setSelectedTerms:", selectedTerms);
             setShowSearchTerms(true); // Show the search terms table
-            console.log("handleFilterClick: showSearchTerms set to true");
-        }
-        else {
+        } else {
             console.log("handleFilterClick: fetchSearchTerms returned null");
         }
     };
@@ -95,27 +92,33 @@ const AppController = () => {
     }
 
     const handleFilteredFetchData = useCallback(async (selectedTermsSet, pageOverride = null) => {
-        // OpenAPI expects filterTerms, currentJob, appliedJob (all singular)
         const toggledSelectedTerms = Array.from(selectedTermsSet);
-        // console.log("handleFilteredFetchData: toggledSelectedTerms:", toggledSelectedTerms);
-        // console.log("handleFilteredFetchData(currentJob, appliedJob):", currentJob, appliedJob);
         const skip = (pageOverride !== null ? pageOverride : page) * pageSize;
-        const data = await fetchCombinedJobsAndSearchTerms(
-            toggledSelectedTerms,
+
+        const payload = {
+            filterTerms: toggledSelectedTerms,
             currentJob,
             appliedJob,
+            remoteJob,
             skip,
-            pageSize
-        );
-        setJobs(data);
+            limit: pageSize
+        };
 
-        const { detailsMap, fieldMappingMap } = buildJobDetailsAndFieldMapping(data);
+        const result = await fetchCombinedJobsAndSearchTerms(payload);
+        const rows = result?.rows ?? [];
+        const count = result?.totalCount ?? 0;
+        const size = result?.pageSize || payload.limit || 100;
+
+        setJobs(rows);
+        setTotalCount(count);
+        setEffectivePageSize(size);
+
+        const { detailsMap, fieldMappingMap } = buildJobDetailsAndFieldMapping(rows);
         setJobDetailsMap(detailsMap);
         setJobFieldMapping(fieldMappingMap);
 
         setJobsFetched(true);  // Set to true once data is fetched
-    }, [currentJob, appliedJob, page]);
-
+    }, [currentJob, appliedJob, remoteJob, page]);
 
     const handleToggleTerm = (term) => {
         const newSelectedTerms = new Set(selectedTerms);
@@ -131,8 +134,8 @@ const AppController = () => {
             // console.log("handleToggleTerm: newSelectedTerms.add(", term, ")");
         }
         setSelectedTerms(newSelectedTerms); // update state
-        // launch handleFetchData with the selected terms, converting to an array first
-        handleFilteredFetchData(newSelectedTerms);
+        console.log("handleToggleTerm: newSelectedTerms:", newSelectedTerms);
+        console.log("newSelectedTerms updated now waiting for useEffect to trigger handleFilteredFetchData with newSelectedTerms");
     };
 
     useEffect(() => {
@@ -143,12 +146,6 @@ const AppController = () => {
 
     // console.log("AppController: handleToggleTerm type:", typeof handleToggleTerm); // Should log 'function'
 
-    const handleJobClick = async (jobId) => {
-        const { details, mapping } = await fetchJobDetails(jobId);
-        setJobDetails(details);
-        setJobFieldMapping(mapping);
-        setSelectedJobId(jobId);
-    };
 
     const handleRowClick = ({ jobId, fieldLabel }) => {
         console.log("handleRowClick(", jobId, fieldLabel, ")");
@@ -192,7 +189,7 @@ const AppController = () => {
 
     useEffect(() => {
         handleFilteredFetchData(selectedTerms);
-    }, [currentJob, appliedJob, selectedTerms, handleFilteredFetchData]);
+    }, [currentJob, appliedJob, remoteJob, selectedTerms, handleFilteredFetchData]);
 
     const handleCurrentJobChange = (newValue) => {
         setCurrentJob(newValue);
@@ -202,6 +199,45 @@ const AppController = () => {
         setAppliedJob(newValue);
     };
 
+    const handleRemoteJobChange = (newValue) => {
+        setRemoteJob(newValue);
+    };
+
+    const handleUpdateRow = async () => {
+        if (editingRow && jobDetailsMap && jobFieldMapping) {
+            const { jobId, fieldLabel } = editingRow;
+            let valueToSend;
+            if (isDateField(fieldLabel)) {
+                valueToSend = editingDateValue;
+            } else {
+                valueToSend = editingValue;
+            }
+            // Use the mapping to get the backend field name
+            const mapping = jobFieldMapping[jobId] || {};
+            const backendField = mapping[createLowercaseDBField(fieldLabel)] || fieldLabel;
+            await patchJobDetails(jobId, backendField, valueToSend);
+            setEditingRow(null);
+            setEditingValue('');
+            setEditingDateValue('');
+            // Optionally refresh data here, e.g.:
+            await handleFilteredFetchData(selectedTerms);
+        }
+    };
+
+    const handleConfirmSave = async () => {
+        await handleUpdateRow(); // This should use editingRow, editingValue, etc.
+        // Optionally refresh data here, e.g.:
+        // await handleFilteredFetchData(selectedTerms);
+        setIsModalOpen(false);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        // Optionally reset editing state:
+        // setEditingRow(null);
+        // setEditingValue('');
+        // setEditingDateValue('');
+    };
 
     // console.log('AppController:handleDateChange type:', typeof handleDateChange); // Should log 'function'
     // Log AppController props
@@ -210,6 +246,36 @@ const AppController = () => {
     useEffect(() => {
         console.log("editingRow changed:", editingRow);
     }, [editingRow]);
+
+    const totalPages = Math.max(1, Math.ceil((totalCount || 0) / (pageSize || 1)));
+    const hasNext = page + 1 < totalPages;
+
+    const [activeSort, setActiveSort] = useState({
+        column: null,      // e.g. "Job Number" or null
+        direction: null    // "up" | "down" | null
+    });
+
+    const handleHeaderOnClick = (fieldLabel) => {
+        setActiveSort(prev => {
+            if (prev.column !== fieldLabel) {
+                console.log("handleHeaderOnClick: prev.column =", prev.column, "fieldLabel:", fieldLabel);
+                console.log("handleHeaderOnClick: setting activeSort to:", { column: fieldLabel, direction: "up" });
+                return { column: fieldLabel, direction: "up" };
+            }
+            if (prev.direction === "up") {
+                console.log("handleHeaderOnClick: prev.direction was 'up', now setting to 'down' for column:", fieldLabel);
+                return {
+                    column: fieldLabel, direction: "down"
+                };
+            };
+            if (prev.direction === "down") {
+                console.log("handleHeaderOnClick: prev.direction was 'down', now resetting for column:", fieldLabel);
+                return { column: null, direction: null };
+            };
+            return { column: fieldLabel, direction: "up" };
+        });
+    };
+
 
     return (
         <>
@@ -223,14 +289,12 @@ const AppController = () => {
                 showSearchTerms={showSearchTerms}
                 selectedTerms={selectedTerms}
                 handleToggleTerm={handleToggleTerm}
-                onJobClick={handleJobClick}
                 handleBackgroundClick={handleBackgroundClick}
                 onRowClick={handleRowClick}
                 editingRow={editingRow}
                 editingValue={editingValue}
                 onEditValueChange={setEditingValue}
                 onUpdateRow={handleSaveWithConfirmation}
-                selectedJobId={selectedJobId}
                 currentJob={currentJob}
                 handleCurrentJobChange={handleCurrentJobChange}
                 appliedJob={appliedJob}
@@ -239,7 +303,14 @@ const AppController = () => {
                 editingDateValue={editingDateValue}
                 page={page}
                 setPage={setPage}
-
+                remoteJob={remoteJob}
+                handleRemoteJobChange={handleRemoteJobChange}
+                totalCount={totalCount}
+                pageSize={effectivePageSize}
+                totalPages={totalPages}
+                hasNext={hasNext}
+                handleHeaderOnClick={handleHeaderOnClick}
+                activeSort={activeSort}
             />
             <SaveConfirmationDialog
                 isOpen={isModalOpen}

@@ -16,14 +16,12 @@ const App = ({
     showSearchTerms,
     selectedTerms,
     handleToggleTerm,
-    onJobClick,
     handleBackgroundClick,
     onRowClick,
     editingRow,
     editingValue,
     onEditValueChange,
     onUpdateRow,
-    selectedJobId,
     currentJob,
     handleCurrentJobChange,
     appliedJob,
@@ -32,61 +30,90 @@ const App = ({
     editingDateValue,
     page,
     setPage,
+    remoteJob,
+    handleRemoteJobChange,
+    totalCount,
+    pageSize,
+    totalPages,
+    hasNext,
+    handleHeaderOnClick,
+    activeSort,
 
 }) => {
+
+
     return (
         <div className="App">
             <header className="App-header"
                 onClick={handleBackgroundClick}
             >
-                <FetchButtons
-                    onFetchData={onFetchData}
-                    jobsFetched={jobsFetched}
-                    onFilterClick={onFilterClick}
-                />
-                <JobTypeControl
-                    jobTypeLabel="Current Jobs"
-                    jobTypeValue={currentJob}
-                    setJobTypeValue={handleCurrentJobChange}
-                />
-                <JobTypeControl
-                    jobTypeLabel="Applied Jobs"
-                    jobTypeValue={appliedJob}
-                    setJobTypeValue={handleAppliedJobChange}
-                />
-
-                <div className="job-search-data">
-
+                <div className="top-controls">
+                    <FetchButtons
+                        onFetchData={onFetchData}
+                        jobsFetched={jobsFetched}
+                        onFilterClick={onFilterClick}
+                    />
+                    <JobTypeControl
+                        jobTypeLabel="Current Jobs"
+                        jobTypeValue={currentJob}
+                        setJobTypeValue={handleCurrentJobChange}
+                    />
+                    <JobTypeControl
+                        jobTypeLabel="Applied Jobs"
+                        jobTypeValue={appliedJob}
+                        setJobTypeValue={handleAppliedJobChange}
+                    />
+                    <JobTypeControl
+                        jobTypeLabel="Remote Jobs"
+                        jobTypeValue={remoteJob}
+                        setJobTypeValue={handleRemoteJobChange}
+                    />
+                </div>
+                <div className='search-terms-datatable-pagination-container'>
                     {showSearchTerms && (
                         <div className="search-terms-container">
                             <SearchTerms
                                 searchTerms={searchTerms}
                                 selectedTerms={selectedTerms}
                                 onToggleTerm={handleToggleTerm}
-                                isShown={showSearchTerms} />
+                                isShown={showSearchTerms}
+                                columns={6} />
                         </div>
                     )}
-                    <div className='table-container-1'>
-                        <DataTable
-                            data={jobs}
-                            jobDetailsMap={jobDetailsMap}
-                            onJobClick={onJobClick}
-                            selectedJobId={selectedJobId}
-                            onRowClick={onRowClick}
-                            editingRow={editingRow}
-                            editingValue={editingValue}
-                            onEditValueChange={onEditValueChange}
-                            onUpdateRow={onUpdateRow}
-                            onEditDateChange={handleDateChange}
-                            editingDateValue={editingDateValue}
-                        />
-                        <div className="pagination-controls" style={{ marginTop: '1rem', textAlign: 'center' }}>
-                            <button disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>
-                            <span style={{ margin: '0 1rem' }}>Page {page + 1}</span>
-                            <button onClick={() => setPage(page + 1)}>Next</button>
-                        </div>
+
+
+
+
+                    <DataTable
+                        data={jobs}
+                        jobDetailsMap={jobDetailsMap}
+                        onRowClick={onRowClick}
+                        editingRow={editingRow}
+                        editingValue={editingValue}
+                        onEditValueChange={onEditValueChange}
+                        onUpdateRow={onUpdateRow}
+                        onEditDateChange={handleDateChange}
+                        editingDateValue={editingDateValue}
+                        handleHeaderOnClick={handleHeaderOnClick}
+                        activeSort={activeSort}
+                    />
+                    <div className="pagination-controls" style={{ marginTop: '1rem', textAlign: 'center' }}>
+                        <button disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>
+                        <span style={{ margin: '0 1rem' }}>
+                            Page {page + 1} of {totalPages} total
+                            <span className='total-count'>
+                                {' '}({totalCount} jobs total)
+                            </span>
+                        </span>
+                        <button
+                            disabled={!hasNext}
+                            onClick={() => setPage(page + 1)}>
+                            Next
+                        </button>
                     </div>
                 </div>
+
+
             </header>
         </div>
     );

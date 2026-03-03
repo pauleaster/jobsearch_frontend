@@ -1,54 +1,42 @@
 // src/view/components/SearchTerms.js
 import React from 'react';
 
-const SearchTerms = ({ searchTerms, selectedTerms = new Set(), onToggleTerm, isShown }) => {
-    // console.log("SearchTerms(", "\nsearchTerms=",searchTerms, "\nselectedTerms=", selectedTerms, "\nonToggleTerm=", onToggleTerm, ")");
-    // console.log("SearchTerms: onToggleTerm type:", typeof onToggleTerm);
-    // console.log("SearchTerms: isShown:", isShown);
-
-    let bad_result = false;
-    // Check if onToggleTerm is a function
-    if (typeof onToggleTerm !== 'function') {
-        // console.log("Error: onToggleTerm is not a function");
-        bad_result = true; // Return null or some error message component
+function chunkArray(array, columns) {
+    const result = [];
+    for (let i = 0; i < array.length; i += columns) {
+        result.push(array.slice(i, i + columns));
     }
+    return result;
+}
 
-    if (!searchTerms || searchTerms.length === 0) {
-        // console.log("SearchTerms: no content");
-        bad_result = true; // Or return some placeholder like <div>Loading...</div>
-    }
-    if (bad_result) {
+const SearchTerms = ({ searchTerms, selectedTerms = new Set(), onToggleTerm, isShown, columns = 5 }) => {
+    if (!Array.isArray(searchTerms) || searchTerms.length === 0 || typeof onToggleTerm !== 'function') {
         return null;
     }
-    // console.log("SearchTerms: has content, returning the table");
 
-    // Mapping the search terms to table rows
-    const searchTermRows = () => {
-        // console.log("SearchTerms: searchTermRows()");
-        return searchTerms.map((termObj) => {
-            // console.log("SearchTerms: searchTermRows.map(", termObj, ")");
-            return (
-                <tr 
-                    key={termObj.Id}
-                    className={selectedTerms.has(termObj.Term) ? 'selected' : ''}
-                    onClick={() => onToggleTerm(termObj.Term)}
-                >
-                    <td>{termObj.Term}</td>
-                </tr>
-            );
-        });
-    };
+    const rows = chunkArray(searchTerms, columns);
 
-    
     return (
         <table className="table-container">
-            <thead>
-                <tr>
-                    <th>Search Terms</th>
-                </tr>
-            </thead>
             <tbody>
-                {searchTermRows()}
+                {rows.map((row, rowIdx) => (
+                    <tr key={rowIdx}>
+                        {row.map((termObj) => (
+                            <td
+                                key={termObj.Id}
+                                className={selectedTerms.has(termObj.Term) ? 'selected' : ''}
+                                onClick={() => onToggleTerm(termObj.Term)}
+                                style={{ cursor: 'pointer', textAlign: 'center' }}
+                            >
+                                {termObj.Term}
+                            </td>
+                        ))}
+                        {/* Fill empty cells if needed */}
+                        {Array.from({ length: columns - row.length }).map((_, i) => (
+                            <td key={`empty-${i}`} />
+                        ))}
+                    </tr>
+                ))}
             </tbody>
         </table>
     );
