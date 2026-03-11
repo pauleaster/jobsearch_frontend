@@ -286,22 +286,35 @@ const fetchCombinedJobsAndSearchTerms = async ({
   currentJob = null,
   appliedJob = null,
   remoteJob = null,
+  followUpSelectionMode = null,
   skip = 0,
-  limit = 100
+  limit = 100,
+  sortMode = "algorithm", // new
+  sortBy = null,          // new
+  sortDir = null          // new
 } = {}) => {
   try {
     const url = `${API_BASE_URL}/filteredCombinedJobsAndSearchTerms`;
+    const body = {
+      filterTerms,
+      currentJob,
+      appliedJob,
+      remoteJob,
+      followUpSelectionMode,
+      skip,
+      limit,
+      sortMode
+    };
+    if (sortMode === "column") {
+      if (sortBy) body.sortBy = sortBy;
+      if (sortDir) body.sortDir = sortDir;
+    }
+    // For explicit algorithm mode, no sortBy/sortDir needed
+
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        filterTerms,
-        currentJob,
-        appliedJob,
-        remoteJob,
-        skip,
-        limit
-      }),
+      body: JSON.stringify(body),
     });
 
     // Log all readable response headers

@@ -88,30 +88,7 @@ body {
   justify-content: space-between;
 }
 
-.table-container-1 {
-  flex: 1 1 auto;
-  min-height: 0;             /* required for proper flex overflow */
-  overflow-y: auto;
-  border: 1px solid #ccc;
-}
 
-/* .table-container-1 td:nth-child(2),
-.table-container-1 th:nth-child(2) {
-  max-width: 30ch;
-  width: 30ch;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-wrap: break-word;
-} */
-
-.table-container-2 {
-  overflow-x: auto;         /* Enable horizontal scrolling */
-  overflow-y: auto;         /* Keep vertical scrolling */
-  max-height: 400px;        /* Adjust as needed */
-  border: 1px solid #ccc;
-  text-align: left;         /* Left-align table content */
-  margin-left: 0;           /* Align to the left edge */
-}
 
 .search-terms-container {
   overflow-y: auto;
@@ -193,6 +170,54 @@ th {
 }
 .sort-state-down .chevron.down {
   opacity: 1;
+}
+
+.table-container-1 {
+  flex: 1 1 auto;
+  min-height: 0;             /* required for proper flex overflow */
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  
+}
+
+/* Freeze the first column (leftmost) */
+.table-container-1 td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;           /* Ensure it stays above other cells */
+  background: #282c34;
+}
+
+.table-container-1 td:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: #ccc; /* Line color */
+  z-index: 10;
+  pointer-events: none; /* So it doesn't block mouse events */
+}
+
+.table-container-1 th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 5; /* higher than other th */
+  background: #f5f5f5; /* header background */
+}
+
+
+.table-container-1 th:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: #ccc;
+  z-index: 11;
+  pointer-events: none;
 }
 
 .ReactModal__Overlay {
@@ -336,4 +361,67 @@ fieldset legend {
 .total-count {
   font-size: 12px;
   color: #999;
+}
+
+.multi-editable-cell {
+  max-height: 4.5em;         /* About 3 lines (adjust as needed) */
+  overflow-y: auto;
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 200px;
+}
+
+.selected-row {
+  background-color: #353a42;
+  color: #FFFFFF;
+}
+
+.filter-tags-container {
+  flex-shrink: 0;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #3a4252;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #262b34 0%, #222730 100%);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-content: flex-start;
+}
+
+.filter-tag {
+  appearance: none;
+  border: 1px solid #586175;
+  background: #1f2430;
+  color: #dbe3f5;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.filter-tag:hover {
+  border-color: #7ea2ff;
+  background: #2a3140;
+  transform: translateY(-1px);
+}
+
+.filter-tag.is-selected {
+  border-color: transparent;
+  background: linear-gradient(135deg, #61dafb 0%, #5b8cff 100%);
+  color: #0f1420;
+  box-shadow: 0 0 0 1px rgba(97, 218, 251, 0.2), 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.filter-tag:focus-visible {
+  outline: 2px solid #61dafb;
+  outline-offset: 2px;
 }

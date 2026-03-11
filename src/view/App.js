@@ -2,14 +2,13 @@ import React from 'react';
 import './App.css';
 import DataTable from './components/DataTable';
 import FetchButtons from './components/FetchButtons';
-import SearchTerms from './components/SearchTerms';
+import {FilterTags} from './components/SearchTerms';
 import JobTypeControl from './components/JobTypeControl';
-
+console.log('FilterTags component:', FilterTags); // Debugging log  
 
 const App = ({
     jobs,
     jobDetailsMap,
-    onFetchData,
     jobsFetched,
     onFilterClick,
     searchTerms,
@@ -18,6 +17,8 @@ const App = ({
     handleToggleTerm,
     handleBackgroundClick,
     onRowClick,
+    selectedJobId,
+    onSelectRow,
     editingRow,
     editingValue,
     onEditValueChange,
@@ -32,6 +33,8 @@ const App = ({
     setPage,
     remoteJob,
     handleRemoteJobChange,
+    followUpSelectionMode,
+    handleFollowUpSelectionModeChange,
     totalCount,
     pageSize,
     totalPages,
@@ -49,7 +52,6 @@ const App = ({
             >
                 <div className="top-controls">
                     <FetchButtons
-                        onFetchData={onFetchData}
                         jobsFetched={jobsFetched}
                         onFilterClick={onFilterClick}
                     />
@@ -68,16 +70,21 @@ const App = ({
                         jobTypeValue={remoteJob}
                         setJobTypeValue={handleRemoteJobChange}
                     />
+                    <JobTypeControl
+                        jobTypeLabel="Exclude No Follow Up Jobs"
+                        jobTypeValue={followUpSelectionMode}
+                        setJobTypeValue={handleFollowUpSelectionModeChange}
+                        trueLabelText="Yes only"
+                    />
                 </div>
                 <div className='search-terms-datatable-pagination-container'>
                     {showSearchTerms && (
-                        <div className="search-terms-container">
-                            <SearchTerms
-                                searchTerms={searchTerms}
+                        <div className="filter-tags-container">
+                            <FilterTags
+                                filterTags={searchTerms}
                                 selectedTerms={selectedTerms}
                                 onToggleTerm={handleToggleTerm}
-                                isShown={showSearchTerms}
-                                columns={6} />
+                            />
                         </div>
                     )}
 
@@ -88,6 +95,8 @@ const App = ({
                         data={jobs}
                         jobDetailsMap={jobDetailsMap}
                         onRowClick={onRowClick}
+                        selectedJobId={selectedJobId}
+                        onSelectRow={onSelectRow}
                         editingRow={editingRow}
                         editingValue={editingValue}
                         onEditValueChange={onEditValueChange}

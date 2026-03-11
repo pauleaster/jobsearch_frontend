@@ -8,6 +8,7 @@ import {
 import App from '../view/App';
 import { createLowercaseDBField, isDateField, formatDateToDDMMYYYY, convertDDMMYYYYToISO } from '../utils/transform';
 import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
+import { act } from 'react';
 
 const AppController = () => {
     const [jobs, setJobs] = useState([]);
@@ -20,13 +21,19 @@ const AppController = () => {
     const [searchTerms, setSearchTerms] = useState([]);
     const [showSearchTerms, setShowSearchTerms] = useState(false);
     const [selectedTerms, setSelectedTerms] = useState(new Set());
+    const [selectedJobId, setSelectedJobId] = useState(null);
     const [currentJob, setCurrentJob] = useState(null); // singular per OpenAPI
     const [appliedJob, setAppliedJob] = useState(null); // singular per OpenAPI
     const [remoteJob, setRemoteJob] = useState(null);
+    const [followUpSelectionMode, setFollowUpSelectionMode] = useState(false);
     const [jobDetailsMap, setJobDetailsMap] = useState({});
     const [page, setPage] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
     const [effectivePageSize, setEffectivePageSize] = useState(100);
+    const [activeSort, setActiveSort] = useState({
+        column: null,      // e.g. "Job Number" or null
+        direction: null    // "up" | "down" | null
+    });
 
     const pageSize = 100;
 
@@ -45,14 +52,6 @@ const AppController = () => {
         }
     };
 
-
-    const handleFetchData = async () => {
-        // Call handleFilteredFetchData with an empty Set to signify no specific filter criteria
-        setSelectedTerms(new Set()); // initialise to an empty set and save state
-        await handleFilteredFetchData(new Set());
-        // Since handleFilteredFetchData already sets jobs and jobsFetched,
-        // there's no need to duplicate that logic here.
-    };
 
     const handleFilterClick = async () => {
         if (showSearchTerms) {
@@ -91,34 +90,56 @@ const AppController = () => {
         return { detailsMap, fieldMappingMap };
     }
 
-    const handleFilteredFetchData = useCallback(async (selectedTermsSet, pageOverride = null) => {
-        const toggledSelectedTerms = Array.from(selectedTermsSet);
-        const skip = (pageOverride !== null ? pageOverride : page) * pageSize;
+    const handleFilteredFetchData = useCallback(
+        async (selectedTermsSet, pageOverride = null) => {
+            const toggledSelectedTerms = Array.from(selectedTermsSet);
+            const skip = (pageOverride !== null ? pageOverride : page) * pageSize;
 
-        const payload = {
-            filterTerms: toggledSelectedTerms,
-            currentJob,
-            appliedJob,
-            remoteJob,
-            skip,
-            limit: pageSize
-        };
+            // Determine sort mode and fields
+            let sortMode = "algorithm";
+            let sortBy = null;
+            let sortDir = null;
+            if (activeSort.column && activeSort.direction) {
+                if (activeSort.column === "Matching Terms") {
+                    sortMode = "algorithm";
+                    sortBy = null;
+                } else {
+                    sortMode = "column";
+                    sortBy = createLowercaseDBField(activeSort.column); // convert to backend field name
+                    sortDir = activeSort.direction === "up" ? "asc" : "desc";
+                }
+            }
 
-        const result = await fetchCombinedJobsAndSearchTerms(payload);
-        const rows = result?.rows ?? [];
-        const count = result?.totalCount ?? 0;
-        const size = result?.pageSize || payload.limit || 100;
+            const payload = {
+                filterTerms: toggledSelectedTerms,
+                currentJob,
+                appliedJob,
+                remoteJob,
+                followUpSelectionMode,
+                skip,
+                limit: pageSize,
+                sortMode,
+                sortBy,
+                sortDir,
+            };
 
-        setJobs(rows);
-        setTotalCount(count);
-        setEffectivePageSize(size);
+            const result = await fetchCombinedJobsAndSearchTerms(payload);
+            const rows = result?.rows ?? [];
+            const count = result?.totalCount ?? 0;
+            const size = result?.pageSize || payload.limit || 100;
 
-        const { detailsMap, fieldMappingMap } = buildJobDetailsAndFieldMapping(rows);
-        setJobDetailsMap(detailsMap);
-        setJobFieldMapping(fieldMappingMap);
+            setJobs(rows);
+            setTotalCount(count);
+            setEffectivePageSize(size);
 
-        setJobsFetched(true);  // Set to true once data is fetched
-    }, [currentJob, appliedJob, remoteJob, page]);
+            const { detailsMap, fieldMappingMap } = buildJobDetailsAndFieldMapping(rows);
+            setJobDetailsMap(detailsMap);
+            setJobFieldMapping(fieldMappingMap);
+
+            setJobsFetched(true);  // Set to true once data is fetched
+        },
+        [currentJob, appliedJob, remoteJob, followUpSelectionMode, page, activeSort] // <-- add activeSort as a dependency
+    );
 
     const handleToggleTerm = (term) => {
         const newSelectedTerms = new Set(selectedTerms);
@@ -149,6 +170,7 @@ const AppController = () => {
 
     const handleRowClick = ({ jobId, fieldLabel }) => {
         console.log("handleRowClick(", jobId, fieldLabel, ")");
+        setSelectedJobId(jobId);
         setEditingRow({ jobId, fieldLabel });
         const details = jobDetailsMap[jobId] || {};
         const dbField = createLowercaseDBField(fieldLabel);
@@ -189,7 +211,7 @@ const AppController = () => {
 
     useEffect(() => {
         handleFilteredFetchData(selectedTerms);
-    }, [currentJob, appliedJob, remoteJob, selectedTerms, handleFilteredFetchData]);
+    }, [currentJob, appliedJob, remoteJob, followUpSelectionMode,  selectedTerms, handleFilteredFetchData, activeSort]);
 
     const handleCurrentJobChange = (newValue) => {
         setCurrentJob(newValue);
@@ -202,6 +224,10 @@ const AppController = () => {
     const handleRemoteJobChange = (newValue) => {
         setRemoteJob(newValue);
     };
+
+    const handleFollowUpSelectionModeChange = (newValue) => {
+        setFollowUpSelectionMode(newValue);
+    }
 
     const handleUpdateRow = async () => {
         if (editingRow && jobDetailsMap && jobFieldMapping) {
@@ -225,10 +251,32 @@ const AppController = () => {
     };
 
     const handleConfirmSave = async () => {
-        await handleUpdateRow(); // This should use editingRow, editingValue, etc.
-        // Optionally refresh data here, e.g.:
-        // await handleFilteredFetchData(selectedTerms);
+        // Get the original value for comparison
+        if (editingRow && jobDetailsMap) {
+            const { jobId, fieldLabel } = editingRow;
+            const dbField = createLowercaseDBField(fieldLabel);
+            const originalValue = jobDetailsMap[jobId]?.[dbField] ?? '';
+
+            // For date fields, compare editingDateValue
+            const isDate = isDateField(fieldLabel);
+            const valueToCheck = isDate ? editingDateValue : editingValue;
+
+            // If no changes, just close modal and reset editing state
+            if (valueToCheck === originalValue) {
+                setIsModalOpen(false);
+                setEditingRow(null);
+                setEditingValue('');
+                setEditingDateValue('');
+                return;
+            }
+        }
+
+        // Otherwise, save and reset
+        await handleUpdateRow();
         setIsModalOpen(false);
+        setEditingRow(null);
+        setEditingValue('');
+        setEditingDateValue('');
     };
 
     const handleCloseModal = () => {
@@ -250,31 +298,32 @@ const AppController = () => {
     const totalPages = Math.max(1, Math.ceil((totalCount || 0) / (pageSize || 1)));
     const hasNext = page + 1 < totalPages;
 
-    const [activeSort, setActiveSort] = useState({
-        column: null,      // e.g. "Job Number" or null
-        direction: null    // "up" | "down" | null
-    });
+
 
     const handleHeaderOnClick = (fieldLabel) => {
+        if (fieldLabel === "Matching Terms") {
+            // Always set to down, never toggle
+            setActiveSort({ column: "Matching Terms", direction: "down" });
+            return;
+        }
         setActiveSort(prev => {
+            // If switching from Matching Terms to another column, reset first
             if (prev.column !== fieldLabel) {
-                console.log("handleHeaderOnClick: prev.column =", prev.column, "fieldLabel:", fieldLabel);
-                console.log("handleHeaderOnClick: setting activeSort to:", { column: fieldLabel, direction: "up" });
                 return { column: fieldLabel, direction: "up" };
             }
             if (prev.direction === "up") {
-                console.log("handleHeaderOnClick: prev.direction was 'up', now setting to 'down' for column:", fieldLabel);
-                return {
-                    column: fieldLabel, direction: "down"
-                };
-            };
+                return { column: fieldLabel, direction: "down" };
+            }
             if (prev.direction === "down") {
-                console.log("handleHeaderOnClick: prev.direction was 'down', now resetting for column:", fieldLabel);
                 return { column: null, direction: null };
-            };
+            }
             return { column: fieldLabel, direction: "up" };
         });
     };
+
+    useEffect(() => {
+        if (page !== 0) setPage(0);
+    }, [selectedTerms, currentJob, appliedJob, remoteJob, activeSort]);
 
 
     return (
@@ -282,7 +331,6 @@ const AppController = () => {
             <App
                 jobs={jobs}
                 jobDetailsMap={jobDetailsMap}
-                onFetchData={handleFetchData}
                 jobsFetched={jobsFetched}
                 onFilterClick={handleFilterClick}
                 searchTerms={searchTerms}
@@ -291,6 +339,8 @@ const AppController = () => {
                 handleToggleTerm={handleToggleTerm}
                 handleBackgroundClick={handleBackgroundClick}
                 onRowClick={handleRowClick}
+                selectedJobId={selectedJobId}
+                onSelectRow={setSelectedJobId}
                 editingRow={editingRow}
                 editingValue={editingValue}
                 onEditValueChange={setEditingValue}
@@ -305,6 +355,8 @@ const AppController = () => {
                 setPage={setPage}
                 remoteJob={remoteJob}
                 handleRemoteJobChange={handleRemoteJobChange}
+                followUpSelectionMode={followUpSelectionMode}
+                handleFollowUpSelectionModeChange={handleFollowUpSelectionModeChange}
                 totalCount={totalCount}
                 pageSize={effectivePageSize}
                 totalPages={totalPages}

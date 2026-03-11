@@ -51,6 +51,7 @@ const DataTable = ({
   onUpdateRow,
   onEditDateChange,
   selectedJobId,
+  onSelectRow,
   handleHeaderOnClick,
   activeSort,
 }) => (
@@ -63,16 +64,16 @@ const DataTable = ({
             visualState={activeSort.column === "Job Number" ? activeSort.direction : "none"}
             onClick={() => handleHeaderOnClick("Job Number")}
           />
-          <HeaderCell 
+          <HeaderCell
             name="Matching Terms"
-            visualState={activeSort.column === "Matching Terms" ? activeSort.direction : "none"}
+            visualState={activeSort.column === "Matching Terms" ? "down" : "none"}
             onClick={() => handleHeaderOnClick("Matching Terms")}
           />
           {FIELDS.map((field) => (
-            <HeaderCell 
+            <HeaderCell
               key={field.label}
               name={field.label}
-              visualState={activeSort.column   === field.label ? activeSort.direction : "none"}
+              visualState={activeSort.column === field.label ? activeSort.direction : "none"}
               onClick={() => handleHeaderOnClick(field.label)}
             />
           ))}
@@ -127,6 +128,8 @@ const DataTable = ({
                     rel="noopener noreferrer"
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
+                      onSelectRow?.(job.job_id);
                       openJobPreview(fieldValue);
                     }}
                   >
@@ -194,28 +197,34 @@ const DataTable = ({
                   ? job.search_terms.join(', ')
                   : (job.matching_terms || '-')}
               </td>
-              {FIELDS.map((field) => (
-                <td
-                  key={field.label}
-                  className={
-                    field.type === 'multi-editable' &&
-                      (!editingRow ||
-                        editingRow.jobId !== job.job_id ||
-                        editingRow.fieldLabel !== field.label)
-                      ? 'left-align-pre-wrap'
-                      : ''
-                  }
-                  style={{ cursor: isEditableType(field.type) ? 'pointer' : 'default' }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (isEditableType(field.type)) {
-                      onRowClick({ jobId: job.job_id, fieldLabel: field.label });
-                    }
-                  }}
-                >
-                  {renderCell(field)}
-                </td>
-              ))}
+              {FIELDS.map((field) => {
+                const isMulti = field.type === 'multi-editable';
+                const isEditing =
+                  editingRow &&
+                  editingRow.jobId === job.job_id &&
+                  editingRow.fieldLabel === field.label;
+
+                return (
+                  <td
+                    key={field.label}
+                    style={{ cursor: isEditableType(field.type) ? 'pointer' : 'default' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isEditableType(field.type)) {
+                        onRowClick({ jobId: job.job_id, fieldLabel: field.label });
+                      }
+                    }}
+                  >
+                    {isMulti && !isEditing ? (
+                      <div className="multi-editable-cell">
+                        {renderCell(field)}
+                      </div>
+                    ) : (
+                      renderCell(field)
+                    )}
+                  </td>
+                );
+              })}
             </tr>
           );
         })}

@@ -42,4 +42,43 @@ const SearchTerms = ({ searchTerms, selectedTerms = new Set(), onToggleTerm, isS
     );
 };
 
-export default SearchTerms;
+const FilterTags = ({
+    filterTags,
+    searchTerms,
+    selectedTerms = new Set(),
+    onToggleTerm,
+}) => {
+    const terms = Array.isArray(filterTags) ? filterTags : searchTerms;
+
+    if (!Array.isArray(terms) || terms.length === 0 || typeof onToggleTerm !== 'function') {
+        return null;
+    }
+
+    return (
+        <div className="filter-tags" role="listbox" aria-multiselectable="true">
+            {terms.map((termObj, idx) => {
+                const term = termObj?.Term;
+                if (!term) return null;
+
+                const isSelected = selectedTerms.has(term);
+
+                return (
+                    <button
+                        key={termObj?.Id ?? `${term}-${idx}`}
+                        type="button"
+                        className={`filter-tag ${isSelected ? 'is-selected' : ''}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleTerm(term);
+                        }}
+                        aria-pressed={isSelected}
+                    >
+                        {term}
+                    </button>
+                );
+            })}
+        </div>
+    );
+};
+
+export { SearchTerms, FilterTags };
