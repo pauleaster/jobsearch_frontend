@@ -54,11 +54,14 @@ const App = ({
                     <FetchButtons
                         jobsFetched={jobsFetched}
                         onFilterClick={onFilterClick}
+                        showSearchTerms={showSearchTerms}
                     />
                     <JobTypeControl
                         jobTypeLabel="Current Jobs"
                         jobTypeValue={currentJob}
                         setJobTypeValue={handleCurrentJobChange}
+                        enableLabelText="Exclude expired"
+                        trueLabelText="Show unknown expiry"
                     />
                     <JobTypeControl
                         jobTypeLabel="Applied Jobs"
