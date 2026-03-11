@@ -13,26 +13,30 @@ const JobTypeControl = ({
     setJobTypeValue(event.target.checked ? true : null);
   };
 
-  const handleValueChange = (value) => {
-    setJobTypeValue(value);
+  const handleValueChange = (event) => {
+    setJobTypeValue(event.target.checked);
   };
 
   return (
-    <div className="job-type-control">
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <label>
+    <div className={`job-type-control ${jobTypeValue !== null ? 'enabled' : ''}`}>
+      <div className="job-type-row">
+        <label className="job-type-option">
           <input
             type="checkbox"
             checked={jobTypeValue !== null}
             onChange={handleEnableChange}
-          /> {enableLabelText ?? `Enable ${jobTypeLabel}`}
+          />
+          <span>{enableLabelText ?? `Enable ${jobTypeLabel}`}</span>
         </label>
-        <label style={{ marginLeft: '10px' }}>
+
+        <label className="job-type-option secondary">
           <input
             type="checkbox"
             checked={jobTypeValue === true}
-            onChange={() => handleValueChange(!jobTypeValue)}
-          /> {trueLabelText ?? 'True'}
+            onChange={handleValueChange}
+            // disabled={jobTypeValue === null}
+          />
+          <span>{trueLabelText ?? 'True'}</span>
         </label>
       </div>
     </div>
