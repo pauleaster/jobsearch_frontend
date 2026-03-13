@@ -108,6 +108,7 @@ const App = ({
                         editingDateValue={editingDateValue}
                         handleHeaderOnClick={handleHeaderOnClick}
                         activeSort={activeSort}
+                        selectedTerms={selectedTerms}
                     />
                     <div className="pagination-controls" style={{ marginTop: '1rem', textAlign: 'center' }}>
                         <button disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>

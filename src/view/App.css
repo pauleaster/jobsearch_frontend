@@ -109,8 +109,9 @@ table {
 }
 
 th, td {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
+  padding: 6px 10px;
+  border: 1px solid #3a4252;
+  border-bottom: 1px solid #3a4252;
 }
 
 th {
@@ -147,7 +148,7 @@ th {
   margin: -1px 0;
   padding: 0;
   transition: opacity 120ms ease, color 120ms ease;
-  color: #333;
+  color: #dbe3f5;
 }
 
 /* default (none selected): both visible but soft */
@@ -176,7 +177,7 @@ th {
   flex: 1 1 auto;
   min-height: 0;             /* required for proper flex overflow */
   overflow-y: auto;
-  border: 1px solid #ccc;
+  border: 1px solid #3a4252;
   
 }
 
@@ -195,7 +196,7 @@ th {
   right: 0;
   width: 1px;
   height: 100%;
-  background: #ccc; /* Line color */
+  background: #3a4252; /* Line color */
   z-index: 10;
   pointer-events: none; /* So it doesn't block mouse events */
 }
@@ -215,10 +216,37 @@ th {
   right: 0;
   width: 1px;
   height: 100%;
-  background: #ccc;
+  background: #3a4252;
   z-index: 11;
   pointer-events: none;
 }
+
+.table-container-1 tbody tr:hover td {
+  background: #2f3644;
+}
+
+table button {
+  appearance: none;
+  border: 1px solid #4b5568;
+  background: linear-gradient(180deg, #2d3442 0%, #242a34 100%);
+  color: #dbe3f5;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+table button:hover {
+  border-color: #7ea2ff;
+  background: #2f3644;
+}
+
+table button:focus-visible {
+  outline: 2px solid #61dafb;
+  outline-offset: 2px;
+}
+
 
 .ReactModal__Overlay {
   position: fixed;
@@ -239,39 +267,67 @@ th {
   bottom: unset !important;
   left: unset !important;
   background: #2a2e33 !important;
-  padding: 20px;
-  border-radius: 4px;
-  width: 15%;
-  max-width: 500px; /* You can adjust this */
-  outline: none; /* Remove default focus outline */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Optional: Add subtle shadow */
-  height: auto; /* Let the content determine the height */
-  max-height: 90%; /* Make sure the model doesn't go beyond the screen height */
-  overflow-y: auto; /* Allow scrolling */
+  padding: 24px 28px;
+  border-radius: 10px;
+  width: 360px;
+  max-width: min(90vw, 420px);
+  outline: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  height: auto;
+  max-height: 90%;
+  overflow-y: auto;
+  border: 1px solid #4a5366;
 }
+
 .modal-title {
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-size: 1.9rem;
+  margin: 0 0 1rem 0;
+  color: #f2f5fb;
 }
+
+.modal-text {
+  margin: 0;
+  font-size: 1rem;
+  color: #d6dbe6;
+}
+
 
 .modal-button-group {
-  margin-top: 20px;
+  margin-top: 2rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 
-.modal-button, .modal-button.no {
-  padding: 10px 20px;
-  border: none;
-  background-color: #63686e;   
-  color: #FFF;
+.modal-button,
+.modal-button.no {
+  appearance: none;
+  border: 1px solid #4b5568;
+  background: linear-gradient(180deg, #2d3442 0%, #242a34 100%);
+  color: #dbe3f5;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  transition: all 140ms ease;
 }
 
-.modal-button:hover, .modal-button.no:hover {
-  background-color: #50555a;
+.modal-button:hover,
+.modal-button.no:hover {
+  border-color: #7ea2ff;
+  background: #2f3644;
+}
+
+.modal-button:active,
+.modal-button.no:active {
+  transform: translateY(0px);
+  background: #232933;
+}
+
+.modal-button:focus-visible,
+.modal-button.no:focus-visible {
+  outline: 2px solid #61dafb;
+  outline-offset: 2px;
 }
 
 .fetch-buttons-container {
@@ -377,7 +433,7 @@ div input[type="radio"] + label::before {
   display: inline-block;
   width: 16px; /* Adjust size of checkbox/radio */
   height: 16px; /* Adjust size of checkbox/radio */
-  border: 1px solid #ccc; /* Border color for checkbox/radio */
+  border: 1px solid #3a4252; /* Border color for checkbox/radio */
   border-radius: 3px; /* Rounded corners for checkbox/radio */
 }
 fieldset legend {
@@ -409,6 +465,11 @@ fieldset legend {
   color: #FFFFFF;
 }
 
+.table-container-1 tbody tr.selected-row td {
+  background-color: #353a42;
+  color: #FFFFFF;
+}
+
 .filter-tags-container {
   flex-shrink: 0;
   margin-bottom: 0.75rem;
@@ -422,11 +483,36 @@ fieldset legend {
 
 .filter-tags-container::-webkit-scrollbar {
   width: 6px;
+  height: 8px;
 }
 
 .filter-tags-container::-webkit-scrollbar-thumb {
   background: #485066;
   border-radius: 4px;
+}
+
+/* table horizontal scrollbar */
+.table-container-1::-webkit-scrollbar {
+  height: 8px;
+}
+
+/* vertical scrollbars in cells */
+.multi-editable-cell::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* shared thumb style */
+.table-container-1::-webkit-scrollbar-thumb,
+.multi-editable-cell::-webkit-scrollbar-thumb,
+.filter-tags-container::-webkit-scrollbar-thumb {
+  background: #485066;
+  border-radius: 4px;
+}
+
+/* optional track to match dark theme */
+.table-container-1::-webkit-scrollbar-track,
+.multi-editable-cell::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .filter-tags {
@@ -517,4 +603,50 @@ fieldset legend {
 
 .job-type-option input[type="checkbox"]:disabled + span {
   opacity: 0.6;
+}
+
+.matching-terms-cell {
+  max-width: 220px;
+}
+
+.matching-terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.matching-term {
+  display: inline-block;
+  border: 1px solid #586175;
+  background: #1f2430;
+  color: #dbe3f5;
+  border-radius: 999px;
+  padding: 0.18rem 0.45rem;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.matching-term.is-selected {
+  border-color: transparent;
+  background: linear-gradient(135deg, #61dafb 0%, #5b8cff 100%);
+  color: #0f1420;
+  box-shadow: 0 0 0 1px rgba(97, 218, 251, 0.2);
+}
+
+textarea {
+  background: #2b313c;
+  color: #e8edf7;
+  border: 1px solid #586175;
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #61dafb;
+  box-shadow: 0 0 0 1px rgba(97, 218, 251, 0.35);
 }

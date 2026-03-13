@@ -203,7 +203,35 @@ const AppController = () => {
         }
     };
 
+    const hasDataChanged = () => {
+        if (!editingRow || !jobDetailsMap) {
+            return false;
+        }
+
+        const { jobId, fieldLabel } = editingRow;
+        const dbField = createLowercaseDBField(fieldLabel);
+        const originalValue = jobDetailsMap[jobId]?.[dbField] ?? '';
+
+        if (isDateField(fieldLabel)) {
+            const currentDateValue = editingDateValue ?? '';
+            const originalDisplayValue = originalValue
+                ? formatDateToDDMMYYYY(originalValue)
+                : '';
+
+            return currentDateValue !== originalValue && currentDateValue !== originalDisplayValue;
+        }
+
+        return (editingValue ?? '') !== originalValue;
+    };
+
     const handleSaveWithConfirmation = async () => {
+        if (!hasDataChanged()) {
+            setEditingRow(null);
+            setEditingValue('');
+            setEditingDateValue('');
+            return;
+        }
+
         setIsModalOpen(true);
     };
 
@@ -211,7 +239,7 @@ const AppController = () => {
 
     useEffect(() => {
         handleFilteredFetchData(selectedTerms);
-    }, [currentJob, appliedJob, remoteJob, followUpSelectionMode,  selectedTerms, handleFilteredFetchData, activeSort]);
+    }, [currentJob, appliedJob, remoteJob, followUpSelectionMode, selectedTerms, handleFilteredFetchData, activeSort]);
 
     const handleCurrentJobChange = (newValue) => {
         setCurrentJob(newValue);
@@ -251,27 +279,14 @@ const AppController = () => {
     };
 
     const handleConfirmSave = async () => {
-        // Get the original value for comparison
-        if (editingRow && jobDetailsMap) {
-            const { jobId, fieldLabel } = editingRow;
-            const dbField = createLowercaseDBField(fieldLabel);
-            const originalValue = jobDetailsMap[jobId]?.[dbField] ?? '';
-
-            // For date fields, compare editingDateValue
-            const isDate = isDateField(fieldLabel);
-            const valueToCheck = isDate ? editingDateValue : editingValue;
-
-            // If no changes, just close modal and reset editing state
-            if (valueToCheck === originalValue) {
-                setIsModalOpen(false);
-                setEditingRow(null);
-                setEditingValue('');
-                setEditingDateValue('');
-                return;
-            }
+        if (!hasDataChanged()) {
+            setIsModalOpen(false);
+            setEditingRow(null);
+            setEditingValue('');
+            setEditingDateValue('');
+            return;
         }
 
-        // Otherwise, save and reset
         await handleUpdateRow();
         setIsModalOpen(false);
         setEditingRow(null);
@@ -281,10 +296,17 @@ const AppController = () => {
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        // Optionally reset editing state:
-        // setEditingRow(null);
-        // setEditingValue('');
-        // setEditingDateValue('');
+        setEditingRow(null);
+        setEditingValue('');
+        setEditingDateValue('');
+    };
+
+    const handleRequestCloseModal = () => {
+        // Overlay click / ESC: only close when nothing has changed
+        if (!hasDataChanged()) {
+            setIsModalOpen(false);
+        }
+        // else: keep modal open until explicit Yes/No
     };
 
     // console.log('AppController:handleDateChange type:', typeof handleDateChange); // Should log 'function'
@@ -368,6 +390,7 @@ const AppController = () => {
                 isOpen={isModalOpen}
                 onConfirm={handleConfirmSave}
                 onClose={handleCloseModal}
+                onRequestClose={handleRequestCloseModal}
             />
         </>
     );

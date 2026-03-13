@@ -3,15 +3,13 @@ import { formatDateToDDMMYYYY, createLowercaseDBField } from '../../utils/transf
 import HeaderCell from './HeaderCell';
 
 const FIELDS = [
-  { label: 'Job Id', type: 'uneditable' },
-  { label: 'Job Number', type: 'uneditable' },
+  // { label: 'Job Id', type: 'uneditable' },
+    { label: 'Expired', type: 'boolean-editable' },
   { label: 'Position', type: 'uneditable' },
   { label: 'Advertiser', type: 'uneditable' },
   { label: 'Location', type: 'uneditable' },
   { label: 'Work Type', type: 'uneditable' },
   { label: 'Salary', type: 'single-editable' },
-  { label: 'Expired', type: 'boolean-editable' },
-  { label: 'Job URL', type: 'launchable' },
   { label: 'Job Date', type: 'date-editable' },
   { label: 'Title', type: 'single-editable' },
   { label: 'Comments', type: 'multi-editable' },
@@ -54,6 +52,7 @@ const DataTable = ({
   onSelectRow,
   handleHeaderOnClick,
   activeSort,
+  selectedTerms
 }) => (
   <div className="table-container-1">
     <table>
@@ -191,12 +190,43 @@ const DataTable = ({
               key={job.job_id}
               className={job.job_id === selectedJobId ? 'selected-row' : ''}
             >
-              <td>{job.job_number}</td>
               <td>
-                {Array.isArray(job.search_terms)
-                  ? job.search_terms.join(', ')
-                  : (job.matching_terms || '-')}
+                {details.job_url ? (
+                  <a
+                    className="table-link"
+                    href={details.job_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onSelectRow?.(job.job_id);
+                      openJobPreview(details.job_url);
+                    }}
+                  >
+                    {job.job_number} ↗
+                  </a>
+                ) : (
+                  job.job_number || '-'
+                )}
               </td>
+              <td className="matching-terms-cell">
+                {Array.isArray(job.search_terms) && job.search_terms.length > 0 ? (
+                  <div className="matching-terms">
+                    {job.search_terms.map((term) => (
+                      <span
+                        key={term}
+                        className={`matching-term ${selectedTerms?.has(term) ? 'is-selected' : ''}`}
+                      >
+                        {term}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  job.matching_terms || '-'
+                )}
+              </td>
+
               {FIELDS.map((field) => {
                 const isMulti = field.type === 'multi-editable';
                 const isEditing =
