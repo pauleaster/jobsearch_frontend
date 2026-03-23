@@ -8,7 +8,7 @@ import {
 import App from '../view/App';
 import { createLowercaseDBField, isDateField, formatDateToDDMMYYYY, convertDDMMYYYYToISO } from '../utils/transform';
 import SaveConfirmationDialog from '../view/components/SaveConfirmationDialog';
-import { act } from 'react';
+
 
 const AppController = () => {
     const [jobs, setJobs] = useState([]);
@@ -34,6 +34,7 @@ const AppController = () => {
         column: null,      // e.g. "Job Number" or null
         direction: null    // "up" | "down" | null
     });
+    const [excludedTerms, setExcludedTerms] = useState(new Set());
 
     const pageSize = 100;
 
@@ -60,9 +61,11 @@ const AppController = () => {
         }
         const fetchedSearchTerms = await fetchSearchTerms();
         if (fetchedSearchTerms) {
-            setSearchTerms(fetchedSearchTerms);
-            const seachTermsSet = new Set(fetchedSearchTerms.map(termObj => termObj.Term));
-            setSelectedTerms(seachTermsSet);
+            setSearchTerms([...fetchedSearchTerms].sort((a, b) => a.Term.localeCompare(b.Term)));
+            if (selectedTerms.size === 0) {
+                const searchTermsSet = new Set(fetchedSearchTerms.map(termObj => termObj.Term));
+                setSelectedTerms(searchTermsSet);
+            }
             setShowSearchTerms(true); // Show the search terms table
         } else {
             console.log("handleFilterClick: fetchSearchTerms returned null");
@@ -112,6 +115,7 @@ const AppController = () => {
 
             const payload = {
                 filterTerms: toggledSelectedTerms,
+                excludedSearchTerms: Array.from(excludedTerms),
                 currentJob,
                 appliedJob,
                 remoteJob,
@@ -124,7 +128,11 @@ const AppController = () => {
             };
 
             const result = await fetchCombinedJobsAndSearchTerms(payload);
-            const rows = result?.rows ?? [];
+            const rows = (result?.rows ?? []).map(job =>
+                Array.isArray(job.search_terms)
+                    ? { ...job, search_terms: [...job.search_terms].sort((a, b) => a.localeCompare(b)) }
+                    : job
+            );
             const count = result?.totalCount ?? 0;
             const size = result?.pageSize || payload.limit || 100;
 
@@ -138,7 +146,7 @@ const AppController = () => {
 
             setJobsFetched(true);  // Set to true once data is fetched
         },
-        [currentJob, appliedJob, remoteJob, followUpSelectionMode, page, activeSort] // <-- add activeSort as a dependency
+        [currentJob, appliedJob, remoteJob, followUpSelectionMode, page, activeSort, excludedTerms] // <-- add activeSort and excludedTerms as dependencies
     );
 
     const handleToggleTerm = (term) => {
@@ -146,17 +154,40 @@ const AppController = () => {
         if (newSelectedTerms.has(term)) {
             if (newSelectedTerms.size > 1) {
                 newSelectedTerms.delete(term);
-                // console.log("handleToggleTerm: newSelectedTerms.delete(", term, ")");
             } else {
                 return;
             }
         } else {
             newSelectedTerms.add(term);
-            // console.log("handleToggleTerm: newSelectedTerms.add(", term, ")");
+            // Remove from excluded if present
+            if (excludedTerms.has(term)) {
+                const newExcludedTerms = new Set(excludedTerms);
+                newExcludedTerms.delete(term);
+                setExcludedTerms(newExcludedTerms);
+            }
         }
-        setSelectedTerms(newSelectedTerms); // update state
-        console.log("handleToggleTerm: newSelectedTerms:", newSelectedTerms);
-        console.log("newSelectedTerms updated now waiting for useEffect to trigger handleFilteredFetchData with newSelectedTerms");
+        setSelectedTerms(newSelectedTerms);
+    };
+
+    const handleToggleExcludedTerm = (term) => {
+        const newExcludedTerms = new Set(excludedTerms);
+        if (newExcludedTerms.has(term)) {
+            newExcludedTerms.delete(term);
+        } else {
+            // Only exclude (and remove from included) if it won't empty the included set
+            if (selectedTerms.has(term)) {
+                if (selectedTerms.size > 1) {
+                    const newSelectedTerms = new Set(selectedTerms);
+                    newSelectedTerms.delete(term);
+                    setSelectedTerms(newSelectedTerms);
+                    newExcludedTerms.add(term);
+                }
+                // else: can't exclude the last included term — do nothing
+            } else {
+                newExcludedTerms.add(term);
+            }
+        }
+        setExcludedTerms(newExcludedTerms);
     };
 
     useEffect(() => {
@@ -239,7 +270,7 @@ const AppController = () => {
 
     useEffect(() => {
         handleFilteredFetchData(selectedTerms);
-    }, [currentJob, appliedJob, remoteJob, followUpSelectionMode, selectedTerms, handleFilteredFetchData, activeSort]);
+    }, [currentJob, appliedJob, remoteJob, followUpSelectionMode, selectedTerms, excludedTerms, handleFilteredFetchData, activeSort]);
 
     const handleCurrentJobChange = (newValue) => {
         setCurrentJob(newValue);
@@ -345,7 +376,8 @@ const AppController = () => {
 
     useEffect(() => {
         if (page !== 0) setPage(0);
-    }, [selectedTerms, currentJob, appliedJob, remoteJob, activeSort]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedTerms, excludedTerms, currentJob, appliedJob, remoteJob, activeSort]);
 
 
     return (
@@ -385,6 +417,8 @@ const AppController = () => {
                 hasNext={hasNext}
                 handleHeaderOnClick={handleHeaderOnClick}
                 activeSort={activeSort}
+                excludedTerms={excludedTerms}
+                handleToggleExcludedTerm={handleToggleExcludedTerm}
             />
             <SaveConfirmationDialog
                 isOpen={isModalOpen}

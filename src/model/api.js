@@ -283,6 +283,7 @@ const healthCheck = async () => {
 
 const fetchCombinedJobsAndSearchTerms = async ({
   filterTerms = [],
+  excludedSearchTerms = [],
   currentJob = null,
   appliedJob = null,
   remoteJob = null,
@@ -297,6 +298,7 @@ const fetchCombinedJobsAndSearchTerms = async ({
     const url = `${API_BASE_URL}/filteredCombinedJobsAndSearchTerms`;
     const body = {
       filterTerms,
+      excludedSearchTerms,
       currentJob,
       appliedJob,
       remoteJob,

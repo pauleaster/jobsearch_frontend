@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import DataTable from './components/DataTable';
 import FetchButtons from './components/FetchButtons';
-import {FilterTags} from './components/SearchTerms';
+import { FilterTags } from './components/SearchTerms';
 import JobTypeControl from './components/JobTypeControl';
 console.log('FilterTags component:', FilterTags); // Debugging log  
 
@@ -41,7 +41,8 @@ const App = ({
     hasNext,
     handleHeaderOnClick,
     activeSort,
-
+    excludedTerms,
+    handleToggleExcludedTerm,
 }) => {
 
 
@@ -55,6 +56,7 @@ const App = ({
                         jobsFetched={jobsFetched}
                         onFilterClick={onFilterClick}
                         showSearchTerms={showSearchTerms}
+                        filtersLoaded={searchTerms.length > 0}
                     />
                     <JobTypeControl
                         jobTypeLabel="Current Jobs"
@@ -87,6 +89,15 @@ const App = ({
                                 filterTags={searchTerms}
                                 selectedTerms={selectedTerms}
                                 onToggleTerm={handleToggleTerm}
+                            />
+                        </div>
+                    )}
+                    {showSearchTerms && (
+                        <div className="filter-tags-container">
+                            <FilterTags
+                                filterTags={searchTerms}
+                                selectedTerms={excludedTerms}
+                                onToggleTerm={handleToggleExcludedTerm}
                             />
                         </div>
                     )}
