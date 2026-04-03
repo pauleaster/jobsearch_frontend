@@ -1,10 +1,12 @@
 import React from 'react';
 import { formatDateToDDMMYYYY, createLowercaseDBField } from '../../utils/transform';
 import HeaderCell from './HeaderCell';
+import FollowUpCell from './FollowUpCell';
+import ExpiredCell from './ExpiredCell';
 
 const FIELDS = [
   // { label: 'Job Id', type: 'uneditable' },
-    { label: 'Expired', type: 'boolean-editable' },
+  { label: 'Expired', type: 'yesno-boolean' },
   { label: 'Position', type: 'uneditable' },
   { label: 'Advertiser', type: 'uneditable' },
   { label: 'Location', type: 'uneditable' },
@@ -14,7 +16,7 @@ const FIELDS = [
   { label: 'Title', type: 'single-editable' },
   { label: 'Comments', type: 'multi-editable' },
   { label: 'Requirements', type: 'multi-editable' },
-  { label: 'Follow Up', type: 'single-editable' },
+  { label: 'Follow Up', type: 'yesno-editable' },
   { label: 'Highlight', type: 'single-editable' },
   { label: 'Applied', type: 'single-editable' },
   { label: 'Application Date', type: 'date-editable' },
@@ -52,7 +54,8 @@ const DataTable = ({
   onSelectRow,
   handleHeaderOnClick,
   activeSort,
-  selectedTerms
+  selectedTerms,
+  onDirectSave,
 }) => (
   <div className="table-container-1">
     <table>
@@ -179,6 +182,20 @@ const DataTable = ({
                   displayValue
                 );
               }
+              case 'yesno-editable':
+                return (
+                  <FollowUpCell
+                    value={fieldValue}
+                    onSave={(val) => onDirectSave(job.job_id, field.label, val)}
+                  />
+                );
+              case 'yesno-boolean':
+                return (
+                  <ExpiredCell
+                    value={fieldValue}
+                    onSave={(val) => onDirectSave(job.job_id, field.label, val)}
+                  />
+                );
               case 'uneditable':
               default:
                 return fieldValue || '-';

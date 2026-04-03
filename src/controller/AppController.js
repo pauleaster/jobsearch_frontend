@@ -35,6 +35,8 @@ const AppController = () => {
         direction: null    // "up" | "down" | null
     });
     const [excludedTerms, setExcludedTerms] = useState(new Set());
+    const [copiedMode, setCopiedMode] = useState(null);
+    const [mandatoryTerms, setMandatoryTerms] = useState(new Set());
 
     const pageSize = 100;
 
@@ -125,6 +127,7 @@ const AppController = () => {
                 sortMode,
                 sortBy,
                 sortDir,
+                requiredTerms: Array.from(mandatoryTerms)
             };
 
             const result = await fetchCombinedJobsAndSearchTerms(payload);
@@ -146,7 +149,16 @@ const AppController = () => {
 
             setJobsFetched(true);  // Set to true once data is fetched
         },
-        [currentJob, appliedJob, remoteJob, followUpSelectionMode, page, activeSort, excludedTerms] // <-- add activeSort and excludedTerms as dependencies
+        [
+            currentJob,
+            appliedJob,
+            remoteJob,
+            followUpSelectionMode,
+            page,
+            activeSort,
+            excludedTerms,
+            mandatoryTerms
+        ]
     );
 
     const handleToggleTerm = (term) => {
@@ -182,12 +194,60 @@ const AppController = () => {
                     setSelectedTerms(newSelectedTerms);
                     newExcludedTerms.add(term);
                 }
+                // 3a: also remove from mandatory
+                if (mandatoryTerms.has(term)) {
+                    const newMandatoryTerms = new Set(mandatoryTerms);
+                    newMandatoryTerms.delete(term);
+                    setMandatoryTerms(newMandatoryTerms);
+                }
                 // else: can't exclude the last included term — do nothing
             } else {
                 newExcludedTerms.add(term);
             }
         }
         setExcludedTerms(newExcludedTerms);
+    };
+
+    const handleToggleMandatoryTerm = (term) => {
+        const newMandatoryTerms = new Set(mandatoryTerms);
+        if (newMandatoryTerms.has(term)) {
+            newMandatoryTerms.delete(term);  // toggle off — no side effects
+        } else {
+            newMandatoryTerms.add(term);
+            // 3b: auto-add to INCLUDE
+            if (!selectedTerms.has(term)) {
+                setSelectedTerms(new Set([...selectedTerms, term]));
+            }
+            // 3b: remove from EXCLUDE
+            if (excludedTerms.has(term)) {
+                const newExcludedTerms = new Set(excludedTerms);
+                newExcludedTerms.delete(term);
+                setExcludedTerms(newExcludedTerms);
+            }
+        }
+        setMandatoryTerms(newMandatoryTerms);
+    };
+
+    const handleSelectAllInclusiveTerms = () => {
+        setSelectedTerms(new Set(searchTerms.map(t => t.Term)));
+        setExcludedTerms(new Set());
+    };
+
+    const handleSelectAllExclusiveTerms = () => {
+        const allTerms = searchTerms.map(t => t.Term);
+        const firstSelected = allTerms.find(t => selectedTerms.has(t)) ?? allTerms[0];
+        setSelectedTerms(new Set([firstSelected]));
+        setExcludedTerms(new Set(allTerms.filter(t => t !== firstSelected)));
+    };
+
+    const handleClearExcludedTerms = () => {
+        setExcludedTerms(new Set());
+    };
+
+    const handleSelectNoneInclusiveTerms = () => {
+        const allTerms = searchTerms.map(t => t.Term);
+        const firstSelected = allTerms.find(t => selectedTerms.has(t)) ?? allTerms[0];
+        setSelectedTerms(new Set([firstSelected]));
     };
 
     useEffect(() => {
@@ -266,7 +326,12 @@ const AppController = () => {
         setIsModalOpen(true);
     };
 
-
+    const handleDirectSave = async (jobId, fieldLabel, value) => {
+        const mapping = jobFieldMapping[jobId] || {};
+        const backendField = mapping[createLowercaseDBField(fieldLabel)] || fieldLabel;
+        await patchJobDetails(jobId, backendField, value);
+        await handleFilteredFetchData(selectedTerms);
+    };
 
     useEffect(() => {
         handleFilteredFetchData(selectedTerms);
@@ -351,7 +416,12 @@ const AppController = () => {
     const totalPages = Math.max(1, Math.ceil((totalCount || 0) / (pageSize || 1)));
     const hasNext = page + 1 < totalPages;
 
-
+    const handleCopyFilterTags = (text, mode) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopiedMode(mode);
+            setTimeout(() => setCopiedMode(null), 2000);
+        });
+    };
 
     const handleHeaderOnClick = (fieldLabel) => {
         if (fieldLabel === "Matching Terms") {
@@ -419,6 +489,15 @@ const AppController = () => {
                 activeSort={activeSort}
                 excludedTerms={excludedTerms}
                 handleToggleExcludedTerm={handleToggleExcludedTerm}
+                onDirectSave={handleDirectSave}
+                onCopyFilterTags={handleCopyFilterTags}
+                copiedMode={copiedMode}
+                onSelectAllInclusiveTerms={handleSelectAllInclusiveTerms}
+                onSelectAllExclusiveTerms={selectedTerms.size > 1 ? handleSelectAllExclusiveTerms : null}
+                onClearExcludedTerms={handleClearExcludedTerms}
+                onSelectNoneInclusiveTerms={selectedTerms.size > 1 ? handleSelectNoneInclusiveTerms : null}
+                handleToggleMandatoryTerm={handleToggleMandatoryTerm}
+                mandatoryTerms={mandatoryTerms}
             />
             <SaveConfirmationDialog
                 isOpen={isModalOpen}

@@ -47,6 +47,11 @@ const FilterTags = ({
     searchTerms,
     selectedTerms = new Set(),
     onToggleTerm,
+    mode, // 'inclusive' | 'exclusive'
+    onCopy,
+    copied,
+    onSelectAll,
+    onSelectNone,
 }) => {
     const terms = Array.isArray(filterTags) ? filterTags : searchTerms;
 
@@ -54,29 +59,70 @@ const FilterTags = ({
         return null;
     }
 
+    const handleCopy = () => {
+        const active = terms
+            .map(t => t?.Term)
+            .filter(t => t && selectedTerms.has(t))
+            .join(', ');
+        onCopy?.(active);
+    };
+
     return (
-        <div className="filter-tags" role="listbox" aria-multiselectable="true">
-            {terms.map((termObj, idx) => {
-                const term = termObj?.Term;
-                if (!term) return null;
-
-                const isSelected = selectedTerms.has(term);
-
-                return (
-                    <button
-                        key={termObj?.Id ?? `${term}-${idx}`}
-                        type="button"
-                        className={`filter-tag ${isSelected ? 'is-selected' : ''}`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleTerm(term);
-                        }}
-                        aria-pressed={isSelected}
-                    >
-                        {term}
-                    </button>
-                );
-            })}
+        <div className={`filter-tags-wrapper${mode ? ` filter-tags-wrapper--${mode}` : ''}`}>
+            {mode && (
+                <div className="filter-tags-header">
+                    <span className={`filter-tags-mode-label filter-tags-mode-label--${mode}`}>
+                        {mode === 'inclusive' ? '✚ Include' : mode === 'mandatory' ? '★ Mandatory' : '✖ Exclude'}
+                    </span>
+                    <div className="filter-tags-select-btns">
+                        {(onSelectAll !== undefined || onSelectNone !== undefined) && (
+                            <div className="filter-tags-select-btns">
+                                <button
+                                    type="button"
+                                    className="filter-tags-select-btn"
+                                    disabled={!onSelectAll}
+                                    onClick={() => onSelectAll?.()}
+                                >All</button>
+                                <button
+                                    type="button"
+                                    className="filter-tags-select-btn"
+                                    disabled={!onSelectNone}
+                                    onClick={() => onSelectNone?.()}
+                                >None</button>
+                            </div>
+                        )}
+                    </div>
+                    <div className="filter-tags-copy-wrapper">
+                        {copied && <span className="filter-tags-copy-toast">Copied!</span>}
+                        <button
+                            type="button"
+                            className="filter-tags-copy-btn"
+                            title="Copy active tags"
+                            onClick={handleCopy}
+                        >
+                            ⧉
+                        </button>
+                    </div>
+                </div>
+            )}
+            <div className="filter-tags" role="listbox" aria-multiselectable="true">
+                {terms.map((termObj, idx) => {
+                    const term = termObj?.Term;
+                    if (!term) return null;
+                    const isSelected = selectedTerms.has(term);
+                    return (
+                        <button
+                            key={termObj?.Id ?? `${term}-${idx}`}
+                            type="button"
+                            className={`filter-tag ${isSelected ? 'is-selected' : ''}`}
+                            onClick={(e) => { e.stopPropagation(); onToggleTerm(term); }}
+                            aria-pressed={isSelected}
+                        >
+                            {term}
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 };

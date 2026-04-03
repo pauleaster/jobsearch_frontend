@@ -292,7 +292,8 @@ const fetchCombinedJobsAndSearchTerms = async ({
   limit = 100,
   sortMode = "algorithm", // new
   sortBy = null,          // new
-  sortDir = null          // new
+  sortDir = null,          // new
+  requiredTerms = [],
 } = {}) => {
   try {
     const url = `${API_BASE_URL}/filteredCombinedJobsAndSearchTerms`;
@@ -305,7 +306,8 @@ const fetchCombinedJobsAndSearchTerms = async ({
       followUpSelectionMode,
       skip,
       limit,
-      sortMode
+      sortMode,
+      requiredTerms,
     };
     if (sortMode === "column") {
       if (sortBy) body.sortBy = sortBy;

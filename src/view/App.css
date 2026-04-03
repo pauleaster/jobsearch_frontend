@@ -279,6 +279,31 @@ table button:focus-visible {
   border: 1px solid #4a5366;
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #2a2e33;
+  padding: 24px 28px;
+  border-radius: 10px;
+  width: 360px;
+  max-width: min(90vw, 420px);
+  outline: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  max-height: 90%;
+  overflow-y: auto;
+  border: 1px solid #4a5366;
+}
+
+
 .modal-title {
   font-size: 1.9rem;
   margin: 0 0 1rem 0;
@@ -470,6 +495,15 @@ fieldset legend {
   color: #FFFFFF;
 }
 
+/* Keep visited link color visible even when row is selected */
+.table-container-1 tbody tr.selected-row td a.table-link:visited {
+  color: #9ab8e0;
+}
+
+.table-container-1 tbody tr.selected-row td a.table-link:not(:visited) {
+  color: #61dafb;
+}
+
 .filter-tags-container {
   flex-shrink: 0;
   margin-bottom: 0.75rem;
@@ -493,7 +527,7 @@ fieldset legend {
 
 /* table horizontal scrollbar */
 .table-container-1::-webkit-scrollbar {
-  height: 8px;
+  height: 16px;
 }
 
 /* vertical scrollbars in cells */
@@ -649,4 +683,112 @@ textarea:focus {
   outline: none;
   border-color: #61dafb;
   box-shadow: 0 0 0 1px rgba(97, 218, 251, 0.35);
+}
+
+.filter-tags-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.filter-tags-mode-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.filter-tags-mode-label--inclusive {
+  background: rgba(97, 218, 251, 0.15);
+  color: #61dafb;
+  border: 1px solid rgba(97, 218, 251, 0.3);
+}
+
+.filter-tags-mode-label--exclusive {
+  background: rgba(255, 100, 100, 0.15);
+  color: #ff7b7b;
+  border: 1px solid rgba(255, 100, 100, 0.3);
+}
+
+.filter-tags-copy-btn {
+  appearance: none;
+  background: none;
+  border: 1px solid #586175;
+  color: #8a9ab5;
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.filter-tags-copy-btn:hover {
+  border-color: #7ea2ff;
+  color: #dbe3f5;
+}
+
+.filter-tags-copy-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.filter-tags-copy-toast {
+  font-size: 0.7rem;
+  color: #61dafb;
+  animation: toast-fade 2s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes toast-fade {
+  0%   { opacity: 1; }
+  60%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.filter-tags-select-btns {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.filter-tags-select-btn {
+  appearance: none;
+  background: none;
+  border: 1px solid #586175;
+  color: #8a9ab5;
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.filter-tags-select-btn:hover:not(:disabled) {
+  border-color: #7ea2ff;
+  color: #dbe3f5;
+}
+
+.filter-tags-select-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.follow-up-value {
+  cursor: text;
+  min-height: 1.2em;
+}
+
+.follow-up-input {
+  width: 100%;
+  background: #2b313c;
+  color: #e8edf7;
+  border: 1px solid #61dafb;
+  border-radius: 4px;
+  padding: 0.2rem 0.35rem;
+  font: inherit;
+  font-size: 0.85rem;
+  box-sizing: border-box;
 }

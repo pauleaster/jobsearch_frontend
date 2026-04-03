@@ -43,6 +43,15 @@ const App = ({
     activeSort,
     excludedTerms,
     handleToggleExcludedTerm,
+    onDirectSave,
+    onCopyFilterTags,
+    copiedMode,
+    onSelectAllInclusiveTerms,
+    onSelectAllExclusiveTerms,
+    onClearExcludedTerms,
+    onSelectNoneInclusiveTerms,
+    handleToggleMandatoryTerm,
+    mandatoryTerms
 }) => {
 
 
@@ -87,8 +96,25 @@ const App = ({
                         <div className="filter-tags-container">
                             <FilterTags
                                 filterTags={searchTerms}
+                                selectedTerms={mandatoryTerms}
+                                onToggleTerm={handleToggleMandatoryTerm}
+                                mode="mandatory"
+                                onCopy={(text) => onCopyFilterTags(text, 'mandatory')}
+                                copied={copiedMode === 'mandatory'}
+                            />
+                        </div>
+                    )}
+                    {showSearchTerms && (
+                        <div className="filter-tags-container">
+                            <FilterTags
+                                filterTags={searchTerms}
                                 selectedTerms={selectedTerms}
                                 onToggleTerm={handleToggleTerm}
+                                mode="inclusive"
+                                onCopy={(text) => onCopyFilterTags(text, 'inclusive')}
+                                copied={copiedMode === 'inclusive'}
+                                onSelectAll={onSelectAllInclusiveTerms}
+                                onSelectNone={onSelectNoneInclusiveTerms}
                             />
                         </div>
                     )}
@@ -98,6 +124,11 @@ const App = ({
                                 filterTags={searchTerms}
                                 selectedTerms={excludedTerms}
                                 onToggleTerm={handleToggleExcludedTerm}
+                                mode="exclusive"
+                                onCopy={(text) => onCopyFilterTags(text, 'exclusive')}
+                                copied={copiedMode === 'exclusive'}
+                                onSelectAll={onSelectAllExclusiveTerms}
+                                onSelectNone={onClearExcludedTerms}
                             />
                         </div>
                     )}
@@ -120,6 +151,7 @@ const App = ({
                         handleHeaderOnClick={handleHeaderOnClick}
                         activeSort={activeSort}
                         selectedTerms={selectedTerms}
+                        onDirectSave={onDirectSave}
                     />
                     <div className="pagination-controls" style={{ marginTop: '1rem', textAlign: 'center' }}>
                         <button disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>
